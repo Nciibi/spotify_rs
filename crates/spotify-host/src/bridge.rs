@@ -215,8 +215,7 @@ pub fn transport_script(command: Transport) -> String {
         }
     };
 
-    // The unused binding would only add noise in the page's console.
-    call.replace("const state = ", "const unusedState = ")
+    call
 }
 
 #[cfg(test)]
