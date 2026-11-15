@@ -166,6 +166,45 @@ const expression = `(() => {
       }))
     : null;
 
+  // The ancestor chain of a few promotional texts, so the card that holds
+  // them can be identified.
+  const chain = (needle) => {
+    const leaf = Array.from(document.querySelectorAll("*")).find(
+      (el) =>
+        el.children.length === 0 &&
+        (el.textContent || "").trim().startsWith(needle)
+    );
+    if (!leaf) return null;
+    const out = [];
+    let node = leaf;
+    for (let i = 0; i < 7 && node && node.nodeType === 1; i++) {
+      out.push({
+        depth: i,
+        tag: node.tagName.toLowerCase(),
+        testid: node.getAttribute("data-testid"),
+        role: node.getAttribute("role"),
+        cls: (node.getAttribute("class") || "").slice(0, 70),
+        directText: Array.from(node.childNodes)
+          .filter((n) => n.nodeType === 3)
+          .map((n) => n.textContent.trim())
+          .filter(Boolean)
+          .join(" ")
+          .slice(0, 60),
+        buttons: Array.from(node.querySelectorAll(":scope > button, :scope > a, :scope > * > button"))
+          .map((b) => text(b).slice(0, 30)),
+      });
+      node = node.parentElement;
+    }
+    return out;
+  };
+
+  out.promoChains = {
+    createPlaylist: chain("Create your first playlist"),
+    podcasts: chain("Let's find some podcasts to follow"),
+    preview: chain("Preview of Spotify"),
+    aboutAds: chain("About Ads"),
+  };
+
   return JSON.stringify(out, null, 2);
 })()`;
 
