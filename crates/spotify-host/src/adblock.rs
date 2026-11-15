@@ -1,47 +1,60 @@
 //! Ad and telemetry blocking.
 //!
-//! Two layers:
+//! Three layers, all of them local:
 //!
-//! * a native layer that blackholes whole hosts through WebView2's
+//! * a **native** layer that blackholes whole hosts through WebView2's
 //!   `--host-resolver-rules`, so the request never leaves the machine;
-//! * a page layer that filters `fetch`, `XMLHttpRequest`, `WebSocket` and
-//!   `sendBeacon` by path, and hides the ad containers that the web player
-//!   renders.
+//! * a **network** layer inside the page that filters `fetch`,
+//!   `XMLHttpRequest`, `WebSocket`, `EventSource` and `sendBeacon` by host
+//!   and by path;
+//! * a **cosmetic** layer that hides the ad containers the web player
+//!   renders, so no slot is left behind.
 //!
 //! The path patterns come from the endpoints the official client actually
-//! calls (recovered from its own cache, see `re/out/api-surface.txt`).
+//! calls, recovered from its own cache (see `re/out/api-surface.txt`):
+//! `spclient.wg.spotify.com/ads/v2/config`,
+//! `spclient.wg.spotify.com/sponsoredplaylist/v1/sponsored` and the
+//! `gander` notification service.
 
 /// Hosts that only ever serve advertising or telemetry.
 pub const BLOCKED_HOSTS: &[&str] = &[
+    // Spotify's own ad and tracking hosts.
     "ads.service.scdn.co",
+    "ads.i.scdn.co",
+    "pixel.spotify.com",
+    // Google ad networks.
     "ade.googlesyndication.com",
     "pagead2.googlesyndication.com",
-    "www.googleadservices.com",
-    "adservice.google.com",
-    "ad.doubleclick.net",
-    "stats.g.doubleclick.net",
+    "tpc.googlesyndication.com",
     "googleads.g.doubleclick.net",
-    "pixel.spotify.com",
+    "stats.g.doubleclick.net",
+    "securepubads.g.doubleclick.net",
+    "ad.doubleclick.net",
+    "www.googleadservices.com",
+    "googleadservices.com",
+    "adservice.google.com",
+    // Other ad networks and telemetry.
     "abetter.bassilive.com",
-    "ads.i.scdn.co",
-    "sentry.io",
     "o2.ak.adsystem.com",
     "match.adsrvr.org",
     "px.adsrvr.org",
+    "sentry.io",
 ];
 
-/// Path prefixes that are advertising or sponsored content.
+/// Path prefixes that carry advertising or sponsored content.
 pub const BLOCKED_PATHS: &[&str] = &[
-    "/ads/v2/",
-    "/sponsoredplaylist/",
     "/ads/",
     "/ad/",
+    "/sponsoredplaylist/",
     "/gander/",
     "/einkompaniet/",
 ];
 
 /// URL suffixes for advertising endpoints.
-pub const BLOCKED_SUFFIXES: &[&str] = &["/ads/v2/config", "/sponsoredplaylist/v1/sponsored"];
+pub const BLOCKED_SUFFIXES: &[&str] = &[
+    "/ads/v2/config",
+    "/sponsoredplaylist/v1/sponsored",
+];
 
 /// Build the `--host-resolver-rules` value for the WebView2 browser process.
 ///
@@ -55,7 +68,76 @@ pub fn host_resolver_rules() -> String {
     rules.join(", ")
 }
 
+/// The stylesheet that hides the ad slots the web player renders.
+pub fn injected_css() -> String {
+    r#"
+/* Advertising slots. */
+[data-testid="ad-slot"],
+[data-testid="ad-unit"],
+[data-testid="ad-break"],
+[data-testid="advertisement"],
+[data-testid="banner-ad"],
+[data-testid="sponsored-playlist"],
+.advertisement,
+.ad-container,
+[class^="ad-container"],
+[class*="AdContainer"],
+[class*="AdSlot"],
+[class*="BannerAd"] {
+  display: none !important;
+}
+
+/* The player marks sponsored rows with a "Sponsored" label. */
+li:has(> div > div > span:text-is("Sponsored")),
+[role="row"]:has(span:text-is("Sponsored")) {
+  display: none !important;
+}
+"#
+    .to_string()
+}
+
+/// The script that removes any ad element that slipped past the stylesheet.
+pub fn cosmetic_script() -> String {
+    r#"
+(() => {
+  const SELECTORS = [
+    '[data-testid="ad-slot"]',
+    '[data-testid="ad-unit"]',
+    '[data-testid="ad-break"]',
+    '[data-testid="advertisement"]',
+    '[data-testid="banner-ad"]',
+    '[data-testid="sponsored-playlist"]',
+    '.advertisement',
+    '.ad-container'
+  ];
+  const LABELS = ['Sponsored', 'Ad', 'Advertisement'];
+
+  const sweep = () => {
+    for (const selector of SELECTORS) {
+      for (const node of document.querySelectorAll(selector)) node.remove();
+    }
+    // Rows whose visible label is exactly "Sponsored" or "Ad".
+    for (const label of document.querySelectorAll('span, div')) {
+      if (label.children.length !== 0) continue;
+      const text = (label.textContent || '').trim();
+      if (!LABELS.includes(text)) continue;
+      const row = label.closest('li, [data-testid="context-item-link"], [role="row"]');
+      if (row) row.remove();
+      else label.remove();
+    }
+  };
+
+  sweep();
+  return sweep;
+})()
+"#
+    .to_string()
+}
+
 /// The script injected before any page script runs.
+///
+/// It installs the network hooks, the cosmetic stylesheet and the sweep that
+/// removes ad elements the stylesheet could not hide.
 pub fn injected_script() -> String {
     let hosts = serde_json::to_string(BLOCKED_HOSTS).unwrap_or_else(|_| "[]".into());
     let paths = serde_json::to_string(BLOCKED_PATHS).unwrap_or_else(|_| "[]".into());
@@ -67,6 +149,7 @@ pub fn injected_script() -> String {
   const HOSTS = new Set({hosts});
   const PATHS = {paths};
   const SUFFIXES = {suffixes};
+
   const blocked = (raw) => {{
     if (!raw) return false;
     let url;
@@ -77,12 +160,14 @@ pub fn injected_script() -> String {
     return false;
   }};
 
+  const count = () => {{ window.__spotifyRsBlocked = (window.__spotifyRsBlocked || 0) + 1; }};
+
   // fetch
   const realFetch = window.fetch;
   window.fetch = function (input, init) {{
     const url = typeof input === 'string' ? input : (input && input.url);
     if (blocked(url)) {{
-      window.__spotifyRsBlocked = (window.__spotifyRsBlocked || 0) + 1;
+      count();
       return Promise.resolve(new Response(null, {{ status: 204, statusText: 'Blocked by spotify-rs' }}));
     }}
     return realFetch.apply(this, arguments);
@@ -124,95 +209,99 @@ pub fn injected_script() -> String {
   BlockedSocket.prototype = RealWebSocket.prototype;
   window.WebSocket = function (url, protocols) {{
     if (blocked(url)) {{
-      window.__spotifyRsBlocked = (window.__spotifyRsBlocked || 0) + 1;
+      count();
       return new BlockedSocket();
     }}
     return protocols === undefined ? new RealWebSocket(url) : new RealWebSocket(url, protocols);
   }};
   window.WebSocket.prototype = RealWebSocket.prototype;
 
+  // EventSource
+  if (window.EventSource) {{
+    const RealEventSource = window.EventSource;
+    function BlockedSource() {{
+      this.readyState = 2;
+      this.close = () => {{}};
+      this.addEventListener = () => {{}};
+      this.removeEventListener = () => {{}};
+    }}
+    BlockedSource.prototype = RealEventSource.prototype;
+    window.EventSource = function (url, config) {{
+      if (blocked(url)) {{
+        count();
+        return new BlockedSource();
+      }}
+      return config === undefined ? new RealEventSource(url) : new RealEventSource(url, config);
+    }};
+    window.EventSource.prototype = RealEventSource.prototype;
+  }}
+
   // beacons
   if (navigator.sendBeacon) {{
     const realBeacon = navigator.sendBeacon.bind(navigator);
     navigator.sendBeacon = function (url, data) {{
-      if (blocked(url)) return false;
+      if (blocked(url)) {{
+        count();
+        return false;
+      }}
       return realBeacon(url, data);
     }};
   }}
 
-  // Ad imagery and iframes
+  // Ad imagery. The `src` property setter has to be patched as well, because
+  // assigning to it does not go through `setAttribute`.
   const realSetAttribute = Element.prototype.setAttribute;
   Element.prototype.setAttribute = function (name, value) {{
     if ((name === 'src' || name === 'data-src') && blocked(value)) {{
-      window.__spotifyRsBlocked = (window.__spotifyRsBlocked || 0) + 1;
+      count();
       return;
     }}
     return realSetAttribute.call(this, name, value);
   }};
+  try {{
+    const descriptor = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'src');
+    if (descriptor && descriptor.set) {{
+      Object.defineProperty(HTMLImageElement.prototype, 'src', {{
+        get: descriptor.get,
+        set: function (value) {{
+          if (blocked(value)) {{
+            count();
+            return;
+          }}
+          descriptor.set.call(this, value);
+        }},
+        configurable: descriptor.configurable,
+        enumerable: descriptor.enumerable
+      }});
+    }}
+  }} catch (e) {{}}
 }})();
 "#
     )
 }
 
-/// Stylesheet that hides the ad slots the web player renders.
-pub fn injected_css() -> String {
-    r#"
-/* Hide advertising slots. */
-[data-testid="ad-slot"],
-[data-testid="ad-unit"],
-[data-testid="ad-break"],
-[data-testid="advertisement"],
-[data-testid="sponsored-playlist"],
-[data-testid="banner-ad"],
-.advertisement,
-.ad-container,
-[class^="ad-container"],
-[class*="AdContainer"],
-[class*="AdSlot"],
-[class*="BannerAd"] {
-  display: none !important;
-}
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-/* The player marks sponsored rows with a "Sponsored" label. */
-[data-testid="context-item-link"]:has(> *:only-child [data-encore-id="textAdditiveStrong"]),
-li:has(> div > div > span:text-is("Sponsored")) {
-  display: none !important;
-}
-"#
-    .to_string()
-}
-
-/// Script that removes any ad element that slipped past the CSS.
-pub fn cosmetic_script() -> String {
-    r#"
-(() => {
-  const SELECTORS = [
-    '[data-testid="ad-slot"]',
-    '[data-testid="ad-unit"]',
-    '[data-testid="ad-break"]',
-    '[data-testid="advertisement"]',
-    '[data-testid="banner-ad"]',
-    '.ad-container',
-  ];
-  const sweep = () => {
-    for (const selector of SELECTORS) {
-      for (const node of document.querySelectorAll(selector)) node.remove();
-    }
-    // Rows whose visible label is exactly "Sponsored" or "Ad".
-    for (const label of document.querySelectorAll('span, div')) {
-      if (label.children.length === 0) {
-        const text = (label.textContent || '').trim();
-        if (text === 'Sponsored' || text === 'Ad') {
-          const row = label.closest('li, [data-testid="context-item-link"], [role="row"]');
-          if (row) row.remove();
-          else label.remove();
+    #[test]
+    fn resolver_rules_cover_every_blocked_host() {
+        let rules = host_resolver_rules();
+        for host in BLOCKED_HOSTS {
+            assert!(rules.contains(&format!("MAP {host} 0.0.0.0")), "missing {host}");
         }
-      }
     }
-  };
-  sweep();
-  try { new MutationObserver(sweep).observe(document, { childList: true, subtree: true }); } catch (e) {}
-})();
-"#
-    .to_string()
+
+    #[test]
+    fn rules_never_map_the_api_host() {
+        assert!(!host_resolver_rules().contains("spclient.wg.spotify.com"));
+    }
+
+    #[test]
+    fn script_carries_every_rule_set() {
+        let script = injected_script();
+        assert!(script.contains("BLOCKED_HOSTS") || script.contains("ads.service.scdn.co"));
+        assert!(script.contains("/sponsoredplaylist/"));
+        assert!(script.contains("__spotifyRsBlocked"));
+    }
 }

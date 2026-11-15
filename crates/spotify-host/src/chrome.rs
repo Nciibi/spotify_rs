@@ -1,9 +1,13 @@
 //! Styling for the embedded Spotify client.
 //!
 //! The page is the real web player, so the goal is to make it feel like a
-//! native desktop application: rounded corners that reveal the system Mica
-//! backdrop, tighter spacing, proper scrollbars and a cleaner sidebar.
+//! native desktop application: the marketing chrome of the website is hidden,
+//! rounded corners reveal the system Mica backdrop, and the scrollbars and
+//! separators match the rest of the application.
+//!
+//! The selectors come from the live page, see `re/probe_page.mjs`.
 
+/// The stylesheet that turns the web player into a desktop window.
 pub fn injected_css() -> String {
     r#"
 /* Let the window's Mica backdrop show through the rounded corners. */
@@ -56,32 +60,38 @@ img { border-radius: 6px; }
 }
 :focus:not(:focus-visible) { outline: none !important; }
 
-/* Slightly larger touch targets for the transport controls. */
-button[aria-label*="Play"],
-button[aria-label*="Pause"],
-button[aria-label*="Next"],
-button[aria-label*="Previous"] {
-  transition: transform 90ms ease;
-}
-button[aria-label*="Play"]:active,
-button[aria-label*="Pause"]:active {
-  transform: scale(0.94);
-}
-
 /* The bottom player bar floats above the backdrop. */
 footer, [data-testid="now-playing-widget"] {
   backdrop-filter: blur(18px);
 }
 
-/* Kill the "listen on another device" nudge that the web player shows. */
-[data-testid="upgrade-button"],
-button[data-testid="upgrade-button"] { display: none !important; }
-
 /* Elements the host marked as unwanted. */
 [data-spotify-rs-hide] { display: none !important; }
 
-/* The sign-up promo bar along the bottom. */
+/* ---- Website-only chrome ------------------------------------------------ */
+
+/* The "Skip to main content" link is a web accessibility affordance. */
+a.e-101111-skip-link { display: none !important; }
+
+/* "Sign up" next to "Log in": a desktop client only signs in. */
+[data-testid="signup-button"] { display: none !important; }
+
+/* The sidebar footer carries the legal links and the language picker. */
+[data-testid="left-sidebar-legal-links"],
+[data-testid="language-selection-button"] { display: none !important; }
+
+/* The "Preview of Spotify" upsell above the player bar. */
 [data-testid="signup-bar"] { display: none !important; }
+
+/* The marketing footer at the bottom of every page. */
+[data-testid="footer-div"],
+.main-view-container__mh-footer-container { display: none !important; }
+
+/* The header's marketing buttons. */
+[data-testid="global-nav-bar"] button:text-is("Premium"),
+[data-testid="global-nav-bar"] button:text-is("Support"),
+[data-testid="global-nav-bar"] button:text-is("Download"),
+[data-testid="global-nav-bar"] a:text-is("Install App") { display: none !important; }
 
 /* The cookie consent wall. */
 #onetrust-consent-sdk,
@@ -96,33 +106,60 @@ button[data-testid="upgrade-button"] { display: none !important; }
     .to_string()
 }
 
-/// Removes the parts of the web interface that a desktop client does not
-/// need: the marketing links in the header and the signup prompts.
+/// The script that removes the parts of the web interface a desktop client
+/// does not need.
 ///
-/// The elements are marked rather than removed, because React re-creates them
-/// as soon as they leave the tree.
+/// React re-creates the marketing nodes as soon as they leave the tree, so
+/// they are marked with an attribute and hidden with CSS instead of being
+/// removed.
 ///
 /// Returns an expression that evaluates to the pruning function.
 pub fn prune_script() -> String {
     r#"
 (() => {
-  const DROP = ['Premium', 'Support', 'Download', 'Install App', 'Sign up'];
+  const HIDE_TEXT = ['Premium', 'Support', 'Download', 'Install App', 'Sign up'];
+  const PROMO_TEXT = ['Create your first playlist', "Let's find some podcasts to follow"];
+  const HIDE_SELECTORS = [
+    'a.e-101111-skip-link',
+    '[data-testid="signup-button"]',
+    '[data-testid="left-sidebar-legal-links"]',
+    '[data-testid="language-selection-button"]',
+    '[data-testid="signup-bar"]',
+    '[data-testid="footer-div"]',
+    '.main-view-container__mh-footer-container'
+  ];
+
+  const hide = (node) => {
+    if (!node || node.getAttribute('data-spotify-rs-hide') === '1') return;
+    node.setAttribute('data-spotify-rs-hide', '1');
+  };
 
   return function prune() {
+    for (const selector of HIDE_SELECTORS) {
+      for (const node of document.querySelectorAll(selector)) hide(node);
+    }
+
+    // The header's marketing buttons.
     const nav = document.querySelector('[data-testid="global-nav-bar"]');
-    if (!nav) return;
-    for (const label of DROP) {
+    if (nav) {
       for (const node of nav.querySelectorAll('button, a')) {
-        if ((node.textContent || '').trim() !== label) continue;
-        // Keep the account button, it is how the user signs in.
-        if (node.getAttribute('data-testid') === 'signup-button') continue;
-        if (node.closest('[data-testid="account-button"]')) continue;
-        if (node.getAttribute('data-spotify-rs-hide') === '1') continue;
-        node.setAttribute('data-spotify-rs-hide', '1');
+        const label = (node.textContent || '').trim();
+        if (!HIDE_TEXT.includes(label)) continue;
+        // "Log in" is how a new user signs in; it is never hidden.
+        if (node.getAttribute('data-testid') === 'login-button') continue;
+        hide(node);
         const holder = node.parentElement;
-        if (holder && holder.children.length === 1 && !holder.getAttribute('data-spotify-rs-hide')) {
-          holder.setAttribute('data-spotify-rs-hide', '1');
-        }
+        if (holder && holder.children.length === 1) hide(holder);
+      }
+    }
+
+    // The promotional cards in the sidebar.
+    for (const needle of PROMO_TEXT) {
+      for (const leaf of document.querySelectorAll('span')) {
+        if (leaf.children.length !== 0) continue;
+        if ((leaf.textContent || '').trim() !== needle) continue;
+        const card = leaf.closest('section') || leaf.closest('div');
+        if (card) hide(card);
       }
     }
   };
@@ -131,47 +168,20 @@ pub fn prune_script() -> String {
     .to_string()
 }
 
-/// Script that reports page state back to the host and wires the shortcuts.
-pub fn injected_script() -> String {
-    let css = injected_css();
-    let prune = prune_script();
-    format!(
-        r#"
-(() => {{
-  // The stylesheet has to be injected before the first paint.
-  const addStyle = () => {{
-    if (document.getElementById('spotify-rs-style')) return;
-    const style = document.createElement('style');
-    style.id = 'spotify-rs-style';
-    style.textContent = {css};
-    (document.head || document.documentElement).appendChild(style);
-  }};
-  if (document.head) addStyle();
-  else document.addEventListener('DOMContentLoaded', addStyle);
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-  // Remove the marketing chrome that only makes sense on the website.
-  const PRUNE = {prune};
-  if (document.readyState === 'loading') {{
-    document.addEventListener('DOMContentLoaded', PRUNE);
-  }} else {{
-    PRUNE();
-  }}
-  try {{ new MutationObserver(PRUNE).observe(document, {{ childList: true, subtree: true }}); }} catch (e) {{}}
+    #[test]
+    fn css_hides_the_website_chrome() {
+        let css = injected_css();
+        assert!(css.contains("[data-testid=\"signup-button\"]"));
+        assert!(css.contains("[data-testid=\"left-sidebar-legal-links\"]"));
+        assert!(css.contains("[data-testid=\"footer-div\"]"));
+    }
 
-  // Report the visible track so the host can show a native notification.
-  const describe = () => document.title || '';
-  window.addEventListener('DOMContentLoaded', () => {{
-    setInterval(() => {{
-      const title = describe();
-      if (window.__spotifyRsLastTitle !== title) {{
-        window.__spotifyRsLastTitle = title;
-        try {{ window.chrome && window.chrome.webview && window.chrome.webview.postMessage(JSON.stringify({{ type: 'title', value: title }})); }} catch (e) {{}}
-      }}
-    }}, 1000);
-  }});
-}})();
-"#,
-        css = serde_json::to_string(&css).unwrap_or_else(|_| "\"\"".into()),
-        prune = prune
-    )
+    #[test]
+    fn prune_keeps_the_login_button() {
+        assert!(prune_script().contains("login-button"));
+    }
 }
