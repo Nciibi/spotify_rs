@@ -1,0 +1,27 @@
+[package]
+name = "spotify-desktop"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "spotify-rs"
+path = "src/main.rs"
+
+[[bin]]
+name = "spotify-rs-auth"
+path = "src/bin/auth.rs"
+
+[[bin]]
+name = "spotify-rs-play"
+path = "src/bin/play.rs"
+
+[dependencies]
+spotify-core.workspace = true
+spotify-playback.workspace = true
+spotify-ui.workspace = true
+spotify-host.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true

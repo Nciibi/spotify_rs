@@ -1,0 +1,1130 @@
+{
+  "spotify.analytics_esperanto.proto.Analytics": {
+    "subMessage": {
+      "streaming": true,
+      "request": [],
+      "response": [
+        {
+          "name": "logMessage",
+          "number": 1,
+          "type": "string",
+          "repeated": false
+        },
+        {
+          "name": "realTime",
+          "number": 2,
+          "type": "message",
+          "repeated": false
+        },
+        {
+          "name": "error",
+          "number": 3,
+          "type": "message",
+          "repeated": false
+        }
+      ]
+    }
+  },
+  "spotify.desktop.commands_esperanto.proto.DesktopCommands": {
+    "subscribeCommand": {
+      "streaming": true,
+      "request": [],
+      "response": [
+        {
+          "name": "id",
+          "number": 2,
+          "type": "bytes",
+          "repeated": false
+        },
+        {
+          "name": "metadataIndex",
+          "number": 3,
+          "type": "int32",
+          "repeated": false
+        },
+        {
+          "name": "urlTemplateIndex",
+          "number": 4,
+          "type": "int32",
+          "repeated": false
+        }
+      ]
+    }
+  },
+  "spotify.desktop.issue_reporter_esperanto.proto.DesktopIssueReporter": {
+    "submitIssue": {
+      "streaming": false,
+      "request": [],
+      "response": [
+        {
+          "name": "id",
+          "number": 2,
+          "type": "bytes",
+          "repeated": false
+        },
+        {
+          "name": "metadataIndex",
+          "number": 3,
+          "type": "int32",
+          "repeated": false
+        },
+        {
+          "name": "urlTemplateIndex",
+          "number": 4,
+          "type": "int32",
+          "repeated": false
+        }
+      ]
+    }
+  },
+  "spotify.desktop.media_file_access_esperanto.proto.DesktopMediaFileAccess": {
+    "getCoverArt": {
+      "streaming": false,
+      "request": [
+        {
+          "name": "registrationId",
+          "number": 1,
+          "type": "string",
+          "repeated": false
+        }
+      ],
+      "response": [
+        {
+          "name": "data",
+          "number": 1,
+          "type": "bytes",
+          "repeated": false
+        },
+        {
+          "name": "mimeType",
+          "number": 2,
+          "type": "string",
+          "repeated": false
+        },
+        {
+          "name": "status",
+          "number": 3,
+          "type": "int32",
+          "repeated": false
+        }
+      ]
+    },
+    "readFileChunk": {
+      "streaming": false,
+      "request": [],
+      "response": [
+        {
+          "name": "isInCollection",
+          "number": 1,
+          "type": "bool",
+          "repeated": false
+        },
+        {
+          "name": "canAddToCollection",
+          "number": 2,
+          "type": "bool",
+          "repeated": false
+        },
+        {
+          "name": "isBanned",
+          "number": 3,
+          "type": "bool",
+          "repeated": false
+        },
+        {
+          "name": "canBan",
+          "number": 4,
+          "type": "bool",
+          "repeated": false
+        }
+      ]
+    },
+    "registerFile": {
+      "streaming": false,
+      "request": [
+        {
+          "name": "username",
+          "number": 1,
+          "type": "bool",
+          "repeated": false
+        },
+        {
+          "name": "link",
+          "number": 2,
+          "type": "bool",
+          "repeated": false
+        },
+        {
+          "name": "name",
+          "number": 3,
+          "type": "bool",
+          "repeated": false
+        },
+        {
+          "name": "image",
+          "number": 4,
+          "type": "bool",
+          "repeated": false
+        },
+        {
+          "name": "thumbnail",
+          "number": 5,
+          "type": "bool",
+          "repeated": false
+        },
+        {
+          "name": "color",
+          "number": 6,
+          "type": "bool",
+          "repeated": false
+        }
+      ],
+      "response": [
+        {
+          "name": "file",
+          "number": 1,
+          "type": "message",
+          "repeated": false
+        },
+        {
+          "name": "status",
+          "number": 2,
+          "type": "int32",
+          "repeated": false
+        }
+      ]
+    },
+    "releaseFile": {
+      "streaming": false,
+      "request": [
+        {
+          "name": "registrationId",
+          "number": 1,
+          "type": "string",
+          "repeated": false
+        }
+      ],
+      "response": [
+        {
+          "name": "status",
+          "number": 1,
+          "type": "int32",
+          "repeated": false
+        }
+      ]
+    },
+    "selectFiles": {
+      "streaming": false,
+      "request": [
+        {
+          "name": "uri",
+          "number": 1,
+          "type": "string",
+          "repeated": false
+        },
+        {
+          "name": "resolve",
+          "number": 2,
+          "type": "message",
+          "repeated": false
+        }
+      ],
+      "response": [
+        {
+          "name": "field1",
+          "number": 1,
+          "type": "message",
+          "repeated": false
+        }
+      ]
+    },
+    "selectLocalFiles": {
+      "streaming": false,
+      "request": [
+        {
+          "name": "key",
+          "number": 1,
+          "type": "string",
+          "repeated": false
+        },
+        {
+          "name": "value",
+          "number": 2,
+          "type": "bool",
+          "repeated": false
+        }
+      ],
+      "response": [
+        {
+          "name": "field1",
+          "number": 1,
+          "type": "message",
+          "repeated": false
+        }
+      ]
+    }
+  },
+  "spotify.desktop.proxy_settings_esperanto.proto.DesktopProxySettings": {
+    "getProxySettings": {
+      "streaming": false,
+      "request": [
+        {
+          "name": "logMessage",
+          "number": 1,
+          "type": "string",
+          "repeated": false
+        },
+        {
+          "name": "realTime",
+          "number": 2,
+          "type": "message",
+          "repeated": false
+        },
+        {
+          "name": "error",
+          "number": 3,
+          "type": "message",
+          "repeated": false
+        }
+      ],
+      "response": []
+    },
+    "setProxySettings": {
+      "streaming": false,
+      "request": [],
+      "response": [
+        {
+          "name": "logMessage",
+          "number": 1,
+          "type": "string",
+          "repeated": false
+        },
+        {
+          "name": "realTime",
+          "number": 2,
+          "type": "message",
+          "repeated": false
+        },
+        {
+          "name": "error",
+          "number": 3,
+          "type": "message",
+          "repeated": false
+        }
+      ]
+    }
+  },
+  "spotify.display_segments_esperanto.proto.v1.DisplaySegmentsService": {
+    "getDisplaySegments": {
+      "streaming": false,
+      "request": [
+        {
+          "name": "link",
+          "number": 1,
+          "type": "bool",
+          "repeated": false
+        },
+        {
+          "name": "name",
+          "number": 2,
+          "type": "bool",
+          "repeated": false
+        },
+        {
+          "name": "isVariousArtists",
+          "number": 3,
+          "type": "bool",
+          "repeated": false
+        },
+        {
+          "name": "portraits",
+          "number": 4,
+          "type": "bool",
+          "repeated": false
+        }
+      ],
+      "response": []
+    }
+  },
+  "spotify.image.esperanto.proto.Image": {
+    "getCacheStatus": {
+      "streaming": false,
+      "request": [
+        {
+          "name": "link",
+          "number": 1,
+          "type": "bool",
+          "repeated": false
+        },
+        {
+          "name": "name",
+          "number": 2,
+          "type": "bool",
+          "repeated": false
+        },
+        {
+          "name": "isVariousArtists",
+          "number": 3,
+          "type": "bool",
+          "repeated": false
+        },
+        {
+          "name": "portraits",
+          "number": 4,
+          "type": "bool",
+          "repeated": false
+        }
+      ],
+      "response": [
+        {
+          "name": "field1",
+          "number": 1,
+          "type": "message",
+          "repeated": false
+        }
+      ]
+    },
+    "getImage": {
+      "streaming": false,
+      "request": [
+        {
+          "name": "uri",
+          "number": 1,
+          "type": "string",
+          "repeated": false
+        },
+        {
+          "name": "resolve",
+          "number": 2,
+          "type": "message",
+          "repeated": false
+        }
+      ],
+      "response": [
+        {
+          "name": "error",
+          "number": 1,
+          "type": "int32",
+          "repeated": false
+        },
+        {
+          "name": "source",
+          "number": 2,
+          "type": "int32",
+          "repeated": false
+        },
+        {
+          "name": "data",
+          "number": 3,
+          "type": "bytes",
+          "repeated": false
+        },
+        {
+          "name": "scaleFactor",
+          "number": 4,
+          "type": "float",
+          "repeated": false
+        }
+      ]
+    },
+    "setProjectionMap": {
+      "streaming": false,
+      "request": [
+        {
+          "name": "trackPolicy",
+          "number": 1,
+          "type": "message",
+          "repeated": false
+        },
+        {
+          "name": "artistsPolicy",
+          "number": 2,
+          "type": "message",
+          "repeated": false
+        },
+        {
+          "name": "albumPolicy",
+          "number": 3,
+          "type": "message",
+          "repeated": false
+        },
+        {
+          "name": "albumArtistPolicy",
+          "number": 4,
+          "type": "message",
+          "repeated": false
+        }
+      ],
+      "response": [
+        {
+          "name": "playback",
+          "number": 1,
+          "type": "bool",
+          "repeated": false
+        },
+        {
+          "name": "embedded",
+          "number": 2,
+          "type": "bool",
+          "repeated": false
+        }
+      ]
+    }
+  },
+  "spotify.offline_playable_cache_esperanto.proto.OfflinePlayableCache": {
+    "getTracks": {
+      "streaming": false,
+      "request": [
+        {
+          "name": "query",
+          "number": 1,
+          "type": "message",
+          "repeated": false
+        },
+        {
+          "name": "policy",
+          "number": 2,
+          "type": "message",
+          "repeated": false
+        },
+        {
+          "name": "updateThrottlingMs",
+          "number": 3,
+          "type": "int32",
+          "repeated": false
+        }
+      ],
+      "response": [
+        {
+          "name": "uri",
+          "number": 1,
+          "type": "string",
+          "repeated": false
+        },
+        {
+          "name": "startMs",
+          "number": 2,
+          "type": "int32",
+          "repeated": false
+        },
+        {
+          "name": "stopMs",
+          "number": 3,
+          "type": "int32",
+          "repeated": false
+        },
+        {
+          "name": "trackMetadata",
+          "number": 4,
+          "type": "message",
+          "repeated": false
+        },
+        {
+          "name": "type",
+          "number": 5,
+          "type": "int32",
+          "repeated": false
+        },
+        {
+          "name": "title",
+          "number": 6,
+          "type": "string",
+          "repeated": false
+        },
+        {
+          "name": "subtitle",
+          "number": 7,
+          "type": "string",
+          "repeated": false
+        },
+        {
+          "name": "imageUrl",
+          "number": 8,
+          "type": "string",
+          "repeated": false
+        },
+        {
+          "name": "actionUrl",
+          "number": 9,
+          "type": "string",
+          "repeated": false
+        },
+        {
+          "name": "episodeMetadata",
+          "number": 10,
+          "type": "message",
+          "repeated": false
+        },
+        {
+          "name": "isAbridged",
+          "number": 11,
+          "type": "bool",
+          "repeated": false
+        },
+        {
+          "name": "chapterUri",
+          "number": 12,
+          "type": "string",
+          "repeated": false
+        }
+      ]
+    },
+    "hasEnoughTracks": {
+      "streaming": false,
+      "request": [
+        {
+          "name": "minItems",
+          "number": 1,
+          "type": "uint32",
+          "repeated": false
+        },
+        {
+          "name": "updateThrottlingMs",
+          "number": 2,
+          "type": "int32",
+          "repeated": false
+        }
+      ],
+      "response": [
+        {
+          "name": "hasEnoughTracks",
+          "number": 1,
+          "type": "bool",
+          "repeated": false
+        }
+      ]
+    },
+    "removeTrack": {
+      "streaming": false,
+      "request": [
+        {
+          "name": "uri",
+          "number": 1,
+          "type": "string",
+          "repeated": false
+        }
+      ],
+      "response": [
+        {
+          "name": "status",
+          "number": 1,
+          "type": "message",
+          "repeated": false
+        }
+      ]
+    },
+    "subscribeHasEnoughTracks": {
+      "streaming": true,
+      "request": [
+        {
+          "name": "minItems",
+          "number": 1,
+          "type": "uint32",
+          "repeated": false
+        },
+        {
+          "name": "updateThrottlingMs",
+          "number": 2,
+          "type": "int32",
+          "repeated": false
+        }
+      ],
+      "response": [
+        {
+          "name": "hasEnoughTracks",
+          "number": 1,
+          "type": "bool",
+          "repeated": false
+        }
+      ]
+    },
+    "subscribeTracks": {
+      "streaming": true,
+      "request": [
+        {
+          "name": "query",
+          "number": 1,
+          "type": "message",
+          "repeated": false
+        },
+        {
+          "name": "policy",
+          "number": 2,
+          "type": "message",
+          "repeated": false
+        },
+        {
+          "name": "updateThrottlingMs",
+          "number": 3,
+          "type": "int32",
+          "repeated": false
+        }
+      ],
+      "response": [
+        {
+          "name": "uri",
+          "number": 1,
+          "type": "string",
+          "repeated": false
+        },
+        {
+          "name": "startMs",
+          "number": 2,
+          "type": "int32",
+          "repeated": false
+        },
+        {
+          "name": "stopMs",
+          "number": 3,
+          "type": "int32",
+          "repeated": false
+        },
+        {
+          "name": "trackMetadata",
+          "number": 4,
+          "type": "message",
+          "repeated": false
+        },
+        {
+          "name": "type",
+          "number": 5,
+          "type": "int32",
+          "repeated": false
+        },
+        {
+          "name": "title",
+          "number": 6,
+          "type": "string",
+          "repeated": false
+        },
+        {
+          "name": "subtitle",
+          "number": 7,
+          "type": "string",
+          "repeated": false
+        },
+        {
+          "name": "imageUrl",
+          "number": 8,
+          "type": "string",
+          "repeated": false
+        },
+        {
+          "name": "actionUrl",
+          "number": 9,
+          "type": "string",
+          "repeated": false
+        },
+        {
+          "name": "episodeMetadata",
+          "number": 10,
+          "type": "message",
+          "repeated": false
+        },
+        {
+          "name": "isAbridged",
+          "number": 11,
+          "type": "bool",
+          "repeated": false
+        },
+        {
+          "name": "chapterUri",
+          "number": 12,
+          "type": "string",
+          "repeated": false
+        }
+      ]
+    }
+  },
+  "spotify.prefetch_esperanto.proto.Prefetch": {
+    "getEventHistory": {
+      "streaming": false,
+      "request": [
+        {
+          "name": "episodePolicy",
+          "number": 1,
+          "type": "message",
+          "repeated": false
+        },
+        {
+          "name": "showDecorationPolicy",
+          "number": 2,
+          "type": "message",
+          "repeated": false
+        }
+      ],
+      "response": [
+        {
+          "name": "width",
+          "number": 1,
+          "type": "int32",
+          "repeated": false
+        },
+        {
+          "name": "height",
+          "number": 2,
+          "type": "int32",
+          "repeated": false
+        }
+      ]
+    },
+    "getQueue": {
+      "streaming": false,
+      "request": [
+        {
+          "name": "episodePolicy",
+          "number": 1,
+          "type": "message",
+          "repeated": false
+        },
+        {
+          "name": "showDecorationPolicy",
+          "number": 2,
+          "type": "message",
+          "repeated": false
+        }
+      ],
+      "response": [
+        {
+          "name": "error",
+          "number": 1,
+          "type": "int32",
+          "repeated": false
+        },
+        {
+          "name": "source",
+          "number": 2,
+          "type": "int32",
+          "repeated": false
+        },
+        {
+          "name": "data",
+          "number": 3,
+          "type": "bytes",
+          "repeated": false
+        },
+        {
+          "name": "scaleFactor",
+          "number": 4,
+          "type": "float",
+          "repeated": false
+        }
+      ]
+    }
+  },
+  "spotify.restrictions.permissions.permissions_proto.Permissions": {
+    "canAddToQueue": {
+      "streaming": false,
+      "request": [
+        {
+          "name": "trackPolicy",
+          "number": 1,
+          "type": "message",
+          "repeated": false
+        },
+        {
+          "name": "artistsPolicy",
+          "number": 2,
+          "type": "message",
+          "repeated": false
+        },
+        {
+          "name": "albumPolicy",
+          "number": 3,
+          "type": "message",
+          "repeated": false
+        },
+        {
+          "name": "albumArtistPolicy",
+          "number": 4,
+          "type": "message",
+          "repeated": false
+        }
+      ],
+      "response": [
+        {
+          "name": "link",
+          "number": 1,
+          "type": "string",
+          "repeated": false
+        },
+        {
+          "name": "name",
+          "number": 2,
+          "type": "string",
+          "repeated": false
+        }
+      ]
+    },
+    "canPlayContent": {
+      "streaming": false,
+      "request": [
+        {
+          "name": "name",
+          "number": 1,
+          "type": "string",
+          "repeated": false
+        },
+        {
+          "name": "weight",
+          "number": 2,
+          "type": "float",
+          "repeated": false
+        }
+      ],
+      "response": [
+        {
+          "name": "url",
+          "number": 1,
+          "type": "string",
+          "repeated": false
+        }
+      ]
+    },
+    "canSeeQueue": {
+      "streaming": false,
+      "request": [
+        {
+          "name": "trackPolicy",
+          "number": 1,
+          "type": "message",
+          "repeated": false
+        },
+        {
+          "name": "artistsPolicy",
+          "number": 2,
+          "type": "message",
+          "repeated": false
+        },
+        {
+          "name": "albumPolicy",
+          "number": 3,
+          "type": "message",
+          "repeated": false
+        },
+        {
+          "name": "albumArtistPolicy",
+          "number": 4,
+          "type": "message",
+          "repeated": false
+        }
+      ],
+      "response": [
+        {
+          "name": "link",
+          "number": 1,
+          "type": "string",
+          "repeated": false
+        },
+        {
+          "name": "name",
+          "number": 2,
+          "type": "string",
+          "repeated": false
+        }
+      ]
+    },
+    "canSetQueue": {
+      "streaming": false,
+      "request": [
+        {
+          "name": "trackPolicy",
+          "number": 1,
+          "type": "message",
+          "repeated": false
+        },
+        {
+          "name": "artistsPolicy",
+          "number": 2,
+          "type": "message",
+          "repeated": false
+        },
+        {
+          "name": "albumPolicy",
+          "number": 3,
+          "type": "message",
+          "repeated": false
+        },
+        {
+          "name": "albumArtistPolicy",
+          "number": 4,
+          "type": "message",
+          "repeated": false
+        }
+      ],
+      "response": [
+        {
+          "name": "link",
+          "number": 1,
+          "type": "string",
+          "repeated": false
+        },
+        {
+          "name": "name",
+          "number": 2,
+          "type": "string",
+          "repeated": false
+        }
+      ]
+    },
+    "canSkipPodcastVideoAd": {
+      "streaming": false,
+      "request": [
+        {
+          "name": "trackPolicy",
+          "number": 1,
+          "type": "message",
+          "repeated": false
+        },
+        {
+          "name": "artistsPolicy",
+          "number": 2,
+          "type": "message",
+          "repeated": false
+        },
+        {
+          "name": "albumPolicy",
+          "number": 3,
+          "type": "message",
+          "repeated": false
+        },
+        {
+          "name": "albumArtistPolicy",
+          "number": 4,
+          "type": "message",
+          "repeated": false
+        }
+      ],
+      "response": [
+        {
+          "name": "link",
+          "number": 1,
+          "type": "string",
+          "repeated": false
+        },
+        {
+          "name": "name",
+          "number": 2,
+          "type": "string",
+          "repeated": false
+        },
+        {
+          "name": "portraits",
+          "number": 3,
+          "type": "message",
+          "repeated": false
+        }
+      ]
+    },
+    "canSwitchToMusicVideo": {
+      "streaming": false,
+      "request": [
+        {
+          "name": "trackPolicy",
+          "number": 1,
+          "type": "message",
+          "repeated": false
+        },
+        {
+          "name": "artistsPolicy",
+          "number": 2,
+          "type": "message",
+          "repeated": false
+        },
+        {
+          "name": "albumPolicy",
+          "number": 3,
+          "type": "message",
+          "repeated": false
+        },
+        {
+          "name": "albumArtistPolicy",
+          "number": 4,
+          "type": "message",
+          "repeated": false
+        }
+      ],
+      "response": [
+        {
+          "name": "artist",
+          "number": 1,
+          "type": "message",
+          "repeated": false
+        },
+        {
+          "name": "link",
+          "number": 2,
+          "type": "string",
+          "repeated": false
+        },
+        {
+          "name": "name",
+          "number": 3,
+          "type": "string",
+          "repeated": false
+        },
+        {
+          "name": "covers",
+          "number": 4,
+          "type": "message",
+          "repeated": false
+        }
+      ]
+    },
+    "observeInvalidation": {
+      "streaming": true,
+      "request": [
+        {
+          "name": "trackPolicy",
+          "number": 1,
+          "type": "message",
+          "repeated": false
+        },
+        {
+          "name": "artistsPolicy",
+          "number": 2,
+          "type": "message",
+          "repeated": false
+        },
+        {
+          "name": "albumPolicy",
+          "number": 3,
+          "type": "message",
+          "repeated": false
+        },
+        {
+          "name": "albumArtistPolicy",
+          "number": 4,
+          "type": "message",
+          "repeated": false
+        }
+      ],
+      "response": [
+        {
+          "name": "link",
+          "number": 1,
+          "type": "bool",
+          "repeated": false
+        },
+        {
+          "name": "name",
+          "number": 2,
+          "type": "bool",
+          "repeated": false
+        },
+        {
+          "name": "isVariousArtists",
+          "number": 3,
+          "type": "bool",
+          "repeated": false
+        },
+        {
+          "name": "portraits",
+          "number": 4,
+          "type": "bool",
+          "repeated": false
+        }
+      ]
+    }
+  }
+}
