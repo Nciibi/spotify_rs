@@ -178,17 +178,15 @@ pub fn bridge_script() -> String {
 pub fn transport_script(command: Transport) -> String {
     let call = match command {
         Transport::TogglePlay => {
-            let state = "window.__spotifyRs.state && window.__spotifyRs.state()";
-            format!(
-                r#"
-(() => {{
+            r#"
+(() => {
   const bridge = window.__spotifyRs;
   if (!bridge) return;
   const playing = !!(navigator.mediaSession && navigator.mediaSession.playbackState === 'playing');
   bridge.dispatch(playing ? 'pause' : 'play');
-}})();
+})();
 "#
-            )
+            .to_string()
         }
         Transport::Seek(seconds) => {
             format!(
