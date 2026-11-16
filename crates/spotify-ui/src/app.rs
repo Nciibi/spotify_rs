@@ -399,6 +399,77 @@ impl SpotifyApp {
         ui.separator();
     }
 
+    /// The sign-in screen shown when there is no valid session. Mirrors the
+    /// desktop client's login surface: a dark page, a green mark and a card
+    /// carrying the pairing code once a device flow has started.
+    fn login_view(&mut self, ui: &mut egui::Ui) {
+        let page = ui.max_rect();
+        let glow = egui::Rect::from_center_size(
+            egui::pos2(page.center().x, page.top() + 150.0),
+            Vec2::new(page.width().min(900.0), 380.0),
+        );
+        theme::gradient(ui.painter(), glow, theme::GRADIENT_TOP, Color32::TRANSPARENT);
+
+        ui.vertical_centered(|ui| {
+            ui.add_space(64.0);
+
+            let (mark, _) = ui.allocate_exact_size(Vec2::new(56.0, 56.0), Sense::hover());
+            ui.painter()
+                .circle_filled(mark.center(), 26.0, theme::GREEN);
+            let c = mark.center();
+            for (y, half) in [(c.y - 7.0, 8.0), (c.y, 10.0), (c.y + 7.0, 12.0)] {
+                ui.painter().line_segment(
+                    [egui::pos2(c.x - half, y), egui::pos2(c.x + half, y)],
+                    egui::Stroke::new(3.0, theme::BLACK),
+                );
+            }
+
+            ui.add_space(16.0);
+            ui.label(RichText::new("Welcome back").color(theme::TEXT).size(32.0).strong());
+            ui.add_space(6.0);
+            ui.label(RichText::new("Sign in to start listening.").color(theme::TEXT_MUTED).size(15.0));
+            ui.add_space(26.0);
+
+            if let Some(message) = self.pairing.clone() {
+                egui::Frame::new()
+                    .fill(theme::RAISED)
+                    .corner_radius(egui::CornerRadius::same(10))
+                    .inner_margin(egui::Margin::same(24))
+                    .show(ui, |ui| {
+                        ui.set_width(430.0);
+                        ui.label(RichText::new("Pairing with Spotify").color(theme::TEXT).size(20.0).strong());
+                        ui.add_space(14.0);
+                        for line in message.lines() {
+                            ui.label(RichText::new(line).color(theme::TEXT_MUTED).size(14.0));
+                        }
+                        ui.add_space(14.0);
+                        ui.label(
+                            RichText::new("A QR code is shown in your browser — scan it with the Spotify mobile app.")
+                                .color(theme::TEXT_DIM)
+                                .size(12.0),
+                        );
+                    });
+            } else {
+                let button = egui::Button::new(
+                    RichText::new("Sign in with Spotify").color(theme::BLACK).strong().size(15.0),
+                )
+                .fill(theme::GREEN)
+                .corner_radius(egui::CornerRadius::same(24))
+                .min_size(Vec2::new(240.0, 48.0))
+                .stroke(Stroke::NONE);
+                if ui.add(button).clicked() {
+                    self.send(Command::Login);
+                }
+                ui.add_space(14.0);
+                ui.label(
+                    RichText::new("Uses the same QR pairing as Spotify for Desktop")
+                        .color(theme::TEXT_DIM)
+                        .size(12.0),
+                );
+            }
+        });
+    }
+
     fn home_view(&mut self, ui: &mut egui::Ui) {
         // A tinted header, like the gradient the desktop client paints behind
         // the greeting on its home page.
