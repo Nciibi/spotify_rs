@@ -417,30 +417,22 @@ impl SpotifyApp {
                 ui.horizontal(|ui| {
                     for album in &albums {
                         let url = album.image().map(|image| image.url.clone()).unwrap_or_default();
-                        let (rect, response) =
-                            ui.allocate_exact_size(Vec2::new(168.0, 214.0), Sense::click());
-                        theme::card_background(ui.painter(), rect, response.hovered());
-                        ui.allocate_ui_at_rect(rect, |ui| {
-                            ui.vertical(|ui| {
-                                ui.add_space(8.0);
-                                ui.horizontal(|ui| {
-                                    ui.add_space(9.0);
-                                    self.artwork(ui, &url, 150.0);
-                                });
-                                ui.horizontal(|ui| {
-                                    ui.add_space(9.0);
-                                    ui.label(RichText::new(&album.name).color(theme::TEXT).size(13.0).strong());
-                                });
-                                ui.horizontal(|ui| {
-                                    ui.add_space(9.0);
-                                    ui.label(
-                                        RichText::new(album.album_type.replace('_', " "))
-                                            .color(theme::TEXT_MUTED)
-                                            .size(11.0),
-                                    );
-                                });
+                        egui::Frame::new()
+                            .fill(theme::RAISED)
+                            .corner_radius(egui::CornerRadius::same(8))
+                            .inner_margin(egui::Margin::same(9))
+                            .show(ui, |ui| {
+                                ui.set_width(150.0);
+                                self.artwork(ui, &url, 150.0);
+                                ui.label(
+                                    RichText::new(&album.name).color(theme::TEXT).size(13.0).strong(),
+                                );
+                                ui.label(
+                                    RichText::new(album.album_type.replace('_', " "))
+                                        .color(theme::TEXT_MUTED)
+                                        .size(11.0),
+                                );
                             });
-                        });
                         ui.add_space(10.0);
                     }
                 });
