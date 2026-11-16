@@ -347,10 +347,8 @@ pub async fn start_device_flow() -> Result<DeviceAuthorization, AuthError> {
 
 /// Start the device-authorization flow for an explicit client id.
 pub async fn start_device_flow_for(client_id: &str) -> Result<DeviceAuthorization, AuthError> {
-    let form = [
-        ("client_id", client_id),
-        ("scope", &SCOPES.join(" ")),
-    ];
+    let scope = SCOPES.join(" ");
+    let form = [("client_id", client_id), ("scope", scope.as_str())];
 
     let http = reqwest::Client::new();
     let response = http
