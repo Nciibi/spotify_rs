@@ -14,7 +14,9 @@ pub fn strip_ads(value: &mut Value) -> usize {
     fn walk(value: &mut Value, removed: &mut usize) {
         match value {
             Value::Array(items) => {
+                let before = items.len();
                 items.retain(|item| !is_ad(item));
+                *removed += before - items.len();
                 for item in items.iter_mut() {
                     walk(item, removed);
                 }
