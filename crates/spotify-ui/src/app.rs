@@ -752,6 +752,7 @@ impl eframe::App for SpotifyApp {
             .exact_size(64.0)
             .resizable(false)
             .show(ui, |ui| self.top_bar(ui));
+        }
 
         egui::containers::CentralPanel::default()
             .frame(egui::Frame::default().fill(theme::BASE))
