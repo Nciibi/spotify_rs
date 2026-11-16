@@ -742,10 +742,5 @@ impl eframe::App for SpotifyApp {
                 });
             });
 
-        egui::containers::Panel::top("status")
-            .frame(egui::Frame::default().fill(theme::BLACK))
-            .exact_size(24.0)
-            .resizable(false)
-            .show(ui, |ui| self.status_bar(ui));
     }
 }
