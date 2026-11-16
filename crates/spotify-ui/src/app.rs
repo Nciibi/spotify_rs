@@ -252,7 +252,7 @@ impl SpotifyApp {
                 });
                 ui.add_space(18.0);
 
-                for (glyph, label, page) in [
+                for (_glyph, label, page) in [
                     (theme::icon::HOME, "Home", Page::Home),
                     (theme::icon::SEARCH, "Search", Page::Search),
                 ] {
@@ -260,7 +260,7 @@ impl SpotifyApp {
                     let clicked = ui
                         .add(
                             egui::Button::new(
-                                RichText::new(format!("{glyph}  {label}"))
+                                RichText::new(label)
                                     .color(if selected { theme::TEXT } else { theme::TEXT_MUTED })
                                     .size(15.0),
                             )
