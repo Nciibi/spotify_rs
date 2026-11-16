@@ -113,6 +113,20 @@ pub async fn run(mut commands: UnboundedReceiver<Command>, events: UnboundedSend
     }
 }
 
+/// Hand the pairing URL to the system's default browser.
+fn open_browser(url: &str) {
+    #[cfg(windows)]
+    {
+        let _ = std::process::Command::new("rundll32.exe")
+            .args(["url.dll,FileProtocolHandler", url])
+            .spawn();
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = std::process::Command::new("xdg-open").arg(url).spawn();
+    }
+}
+
 /// Kick off Spotify's device-authorization (QR pairing) flow in the background.
 fn start_login(events: &UnboundedSender<Event>) {
     let events = events.clone();
