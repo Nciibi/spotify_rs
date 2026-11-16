@@ -91,22 +91,22 @@ pub fn gradient(painter: &egui::Painter, rect: egui::Rect, top: Color32, bottom:
     let mut mesh = egui::Mesh::default();
     let base = mesh.vertices.len() as u32;
     mesh.vertices.extend_from_slice(&[
-        egui::Vertex {
+        egui::epaint::Vertex {
             pos: rect.left_top(),
             uv: egui::pos2(0.0, 0.0),
             color: top,
         },
-        egui::Vertex {
+        egui::epaint::Vertex {
             pos: rect.right_top(),
             uv: egui::pos2(1.0, 0.0),
             color: top,
         },
-        egui::Vertex {
+        egui::epaint::Vertex {
             pos: rect.left_bottom(),
             uv: egui::pos2(0.0, 1.0),
             color: bottom,
         },
-        egui::Vertex {
+        egui::epaint::Vertex {
             pos: rect.right_bottom(),
             uv: egui::pos2(1.0, 1.0),
             color: bottom,
