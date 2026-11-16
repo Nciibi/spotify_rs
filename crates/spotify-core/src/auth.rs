@@ -592,4 +592,30 @@ mod tests {
         let expected = URL_SAFE_NO_PAD.encode(Sha256::digest(pkce.verifier.as_bytes()));
         assert_eq!(pkce.challenge, expected);
     }
+
+    #[test]
+    fn pairing_url_prefers_the_complete_variant() {
+        let authorization = DeviceAuthorization {
+            device_code: "device".into(),
+            user_code: "KAXHNB".into(),
+            verification_uri: "https://spotify.com/pair".into(),
+            verification_uri_complete: Some("https://spotify.com/pair?code=KAXHNB".into()),
+            expires_in: 1800,
+            interval: 5,
+        };
+        assert_eq!(authorization.browser_url(), "https://spotify.com/pair?code=KAXHNB");
+    }
+
+    #[test]
+    fn device_token_response_is_parsed() {
+        let value: Value = serde_json::from_str(
+            r#"{"access_token":"abc","refresh_token":"def","expires_in":3600,"scope":"streaming"}"#,
+        )
+        .unwrap();
+        let tokens = token_set_from_value(&value).unwrap();
+        assert_eq!(tokens.access_token, "abc");
+        assert_eq!(tokens.refresh_token, "def");
+        assert_eq!(tokens.scope.as_deref(), Some("streaming"));
+        assert!(tokens.expires_at > 0);
+    }
 }
