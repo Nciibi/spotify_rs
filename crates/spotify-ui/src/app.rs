@@ -400,15 +400,13 @@ impl SpotifyApp {
         // the greeting on its home page.
         let (banner, _) = ui.allocate_exact_size(Vec2::new(ui.available_width(), 116.0), Sense::hover());
         theme::gradient(ui.painter(), banner, theme::GRADIENT_TOP, theme::GRADIENT_BOTTOM);
-        ui.allocate_ui_at_rect(banner, |ui| {
-            ui.vertical(|ui| {
-                ui.add_space(38.0);
-                ui.horizontal(|ui| {
-                    ui.add_space(24.0);
-                    ui.label(RichText::new("Good evening").color(theme::TEXT).size(32.0).strong());
-                });
-            });
-        });
+        ui.painter().text(
+            banner.min + Vec2::new(24.0, 52.0),
+            egui::Align2::LEFT_TOP,
+            "Good evening",
+            egui::FontId::proportional(32.0),
+            theme::TEXT,
+        );
 
         let albums = self.new_releases.clone();
         if !albums.is_empty() {
