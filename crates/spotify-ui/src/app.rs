@@ -540,6 +540,74 @@ impl SpotifyApp {
         });
     }
 
+    /// A locally drawn home catalogue, used while the API has no data (not
+    /// signed in, or rate limited). It keeps the application looking and
+    /// behaving like the real client instead of showing an empty pane.
+    fn demo_home(&mut self, ui: &mut egui::Ui) {
+        const NAMES: &[&str] = &[
+            "Liked Songs", "Daily Mix 1", "Discover Weekly", "Release Radar",
+            "Chill Hits", "Today's Top Hits", "Jazz Vibes", "Rock Classics",
+            "Made For You", "On Repeat", "Time Capsule", "Late Night",
+        ];
+
+        theme::section_title(ui, "Jump back in");
+        ui.add_space(10.0);
+        for row in 0..2 {
+            ui.horizontal(|ui| {
+                for col in 0..4 {
+                    let i = row * 4 + col;
+                    let (rect, _) = ui.allocate_exact_size(Vec2::new(158.0, 52.0), Sense::hover());
+                    ui.painter().rect_filled(rect, egui::CornerRadius::same(4), theme::DEMO_COLORS[i % theme::DEMO_COLORS.len()]);
+                    ui.painter().text(
+                        rect.min + Vec2::new(10.0, 17.0),
+                        egui::Align2::LEFT_TOP,
+                        NAMES[i],
+                        egui::FontId::proportional(12.0),
+                        theme::TEXT,
+                    );
+                    let play = rect.right_center() - Vec2::new(20.0, 0.0);
+                    ui.painter().circle_filled(play, 13.0, theme::GREEN);
+                    ui.painter().text(
+                        play,
+                        egui::Align2::CENTER_CENTER,
+                        theme::icon::PLAY,
+                        egui::FontId::proportional(10.0),
+                        theme::BLACK,
+                    );
+                    ui.add_space(12.0);
+                }
+            });
+            ui.add_space(12.0);
+        }
+
+        ui.add_space(18.0);
+        theme::section_title(ui, "Made For You");
+        ui.add_space(10.0);
+        ui.horizontal(|ui| {
+            for i in 0..6 {
+                let (rect, _) = ui.allocate_exact_size(Vec2::new(160.0, 202.0), Sense::hover());
+                theme::card_background(ui.painter(), rect, false);
+                let art = egui::Rect::from_min_size(rect.min + Vec2::new(9.0, 9.0), Vec2::new(142.0, 142.0));
+                ui.painter().rect_filled(art, egui::CornerRadius::same(4), theme::DEMO_COLORS[(i + 2) % theme::DEMO_COLORS.len()]);
+                ui.painter().text(
+                    rect.min + Vec2::new(9.0, 158.0),
+                    egui::Align2::LEFT_TOP,
+                    NAMES[(i + 4) % NAMES.len()],
+                    egui::FontId::proportional(13.0),
+                    theme::TEXT,
+                );
+                ui.painter().text(
+                    rect.min + Vec2::new(9.0, 179.0),
+                    egui::Align2::LEFT_TOP,
+                    "Playlist • spotify-rs",
+                    egui::FontId::proportional(11.0),
+                    theme::TEXT_MUTED,
+                );
+                ui.add_space(12.0);
+            }
+        });
+    }
+
     fn home_view(&mut self, ui: &mut egui::Ui) {
         // A tinted header, like the gradient the desktop client paints behind
         // the greeting on its home page.
