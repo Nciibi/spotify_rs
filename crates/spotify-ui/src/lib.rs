@@ -15,7 +15,7 @@ pub fn run() {
         viewport: ViewportBuilder::default()
             .with_inner_size([1280.0, 820.0])
             .with_min_inner_size([860.0, 560.0])
-            .with_title("spotify-rs"),
+            .with_title("Spotify"),
         ..Default::default()
     };
 
