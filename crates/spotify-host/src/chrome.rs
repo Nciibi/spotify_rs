@@ -299,6 +299,54 @@ pub fn accent_script() -> String {
     .to_string()
 }
 
+/// Styling for the sign-in surface, derived from the real client's `login.spa`
+/// (`re/target/login/index.html` and `login.css`).
+///
+/// The web login at `accounts.spotify.com` is functional but uses the website's
+/// typography and a flat background. The desktop client's login uses the
+/// SpotifyMixUI/Circular stack, a softly lit dark card and a green accent. We
+/// cannot ship the bundled fonts cross-origin, but the stack below uses them
+/// wherever the system already has them and falls back cleanly.
+pub fn login_css() -> String {
+    r#"
+/* Match the desktop login's typography. */
+html, body, input, button {
+  font-family: 'SpotifyMixUI', 'CircularSp', 'Circular',
+               -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* The desktop login floats a card over a dark, green-lit backdrop. */
+body {
+  background:
+    radial-gradient(90% 60% at 50% -10%, rgba(30, 215, 96, 0.16), transparent 70%),
+    #000 !important;
+}
+section {
+  border-radius: 16px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6),
+              0 0 0 1px rgba(255, 255, 255, 0.05);
+  padding: 32px !important;
+}
+h1 { letter-spacing: -0.04em; }
+
+/* Rounded, roomy form controls like the desktop client's. */
+input[data-testid="login-username"],
+input[id="username"],
+button[type="submit"] {
+  border-radius: 8px !important;
+  min-height: 48px !important;
+}
+button[data-testid="login-button"] {
+  border-radius: 999px !important;
+}
+
+/* Focus rings in the app's green. */
+:focus-visible { outline: 2px solid #1ed760 !important; outline-offset: 2px !important; }
+"#
+    .to_string()
+}
+
 /// Build the single initialization script the host injects before the page.
 ///
 /// It adds the stylesheet, runs the prune and accent passes immediately,
@@ -306,6 +354,7 @@ pub fn accent_script() -> String {
 /// safety net for mutations that do not trigger the observer.
 pub fn injected_script() -> String {
     let css = serde_json::to_string(&injected_css()).unwrap_or_else(|_| "\"\"".into());
+    let login_css = serde_json::to_string(&login_css()).unwrap_or_else(|_| "\"\"".into());
     let prune = prune_script();
     let accent = accent_script();
 
