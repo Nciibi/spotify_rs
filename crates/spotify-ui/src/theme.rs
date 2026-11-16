@@ -114,7 +114,7 @@ pub fn gradient(painter: &egui::Painter, rect: egui::Rect, top: Color32, bottom:
     ]);
     mesh.add_triangle(base, base + 1, base + 2);
     mesh.add_triangle(base + 1, base + 3, base + 2);
-    painter.add(egui::Shape::Mesh(mesh));
+    painter.add(egui::Shape::Mesh(std::sync::Arc::new(mesh)));
 }
 
 /// A rounded card surface. `hovered` lifts the fill slightly.
