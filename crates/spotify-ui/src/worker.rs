@@ -113,22 +113,27 @@ pub async fn run(mut commands: UnboundedReceiver<Command>, events: UnboundedSend
     }
 }
 
-/// Kick off the browser based PKCE flow in the background.
+/// Kick off Spotify's device-authorization (QR pairing) flow in the background.
 fn start_login(events: &UnboundedSender<Event>) {
     let events = events.clone();
     tokio::spawn(async move {
-        let flow = match LoginFlow::start().await {
-            Ok(flow) => flow,
+        let authorization = match auth::start_device_flow().await {
+            Ok(authorization) => authorization,
             Err(err) => {
                 let _ = events.send(Event::Error(err.to_string()));
                 return;
             }
         };
 
-        let _ = events.send(Event::NeedsLogin(flow.auth_url.clone()));
-        flow.open_browser();
+        let message = format!(
+            "Code: {}\n{}",
+            authorization.user_code,
+            authorization.browser_url()
+        );
+        let _ = events.send(Event::NeedsLogin(message));
+        open_browser(authorization.browser_url());
 
-        match flow.complete().await {
+        match auth::await_device_token(&authorization, |_| {}).await {
             Ok(tokens) => {
                 let _ = auth::save_tokens(&tokens);
                 let client = ApiClient::new(tokens.clone(), spotify_core::api::client_id());
