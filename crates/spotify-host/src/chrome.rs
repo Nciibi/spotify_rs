@@ -128,11 +128,15 @@ a.e-101111-skip-link { display: none !important; }
 [class*="PremiumUpsell"],
 [class*="TrialBanner"] { display: none !important; }
 
-/* The header's marketing buttons. */
-[data-testid="global-nav-bar"] button:text-is("Premium"),
-[data-testid="global-nav-bar"] button:text-is("Support"),
-[data-testid="global-nav-bar"] button:text-is("Download"),
-[data-testid="global-nav-bar"] a:text-is("Install App") { display: none !important; }
+/* The header's marketing buttons. The stable `href` handles "Install App";
+   `:has-text()` is used instead of `:text-is()` because Chromium ships the
+   former but not the latter. The JS prune is the primary mechanism and these
+   rules are the no-flash fallback. */
+a[href="/download"] { display: none !important; }
+[data-testid="global-nav-bar"] button:has-text("Premium"),
+[data-testid="global-nav-bar"] button:has-text("Support"),
+[data-testid="global-nav-bar"] button:has-text("Download"),
+[data-testid="global-nav-bar"] a:has-text("Install App") { display: none !important; }
 
 /* The cookie consent wall. */
 #onetrust-consent-sdk,
