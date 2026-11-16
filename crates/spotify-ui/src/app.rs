@@ -607,11 +607,8 @@ impl SpotifyApp {
                     };
                     button(ui, "|<<", 13.0);
                     button(ui, "<", 20.0);
-                    if self.now_playing.paused {
-                        button(ui, ">", 22.0);
-                    } else {
-                        button(ui, "||", 22.0);
-                    }
+                    let paused = self.now_playing.paused;
+                    theme::play_pause_button(ui, paused, || self.send(Command::TogglePause));
                     button(ui, ">", 20.0);
                     button(ui, ">>|", 13.0);
                 });
