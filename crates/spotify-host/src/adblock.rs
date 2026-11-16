@@ -193,20 +193,31 @@ pub fn injected_script() -> String {
   const PATHS = {paths};
   const SUFFIXES = {suffixes};
 
-  // Cosmetic layer: stylesheet plus a MutationObserver-driven sweep.
-  const style = document.createElement('style');
-  style.id = 'sr-adblock-style';
-  style.textContent = {css};
-  (document.head || document.documentElement).appendChild(style);
+  // Cosmetic layer: stylesheet plus a MutationObserver-driven sweep. DOM
+  // injection is deferred when the document is not ready yet, so a missing
+  // <head> can never abort the network hooks below.
+  const addStyle = () => {{
+    if (document.getElementById('sr-adblock-style')) return;
+    const host = document.head || document.documentElement;
+    if (!host) {{ document.addEventListener('DOMContentLoaded', addStyle, {{ once: true }}); return; }}
+    const style = document.createElement('style');
+    style.id = 'sr-adblock-style';
+    style.textContent = {css};
+    host.appendChild(style);
+  }};
+  addStyle();
 
   const sweep = {sweep};
   const sweepNow = () => {{ try {{ sweep(); }} catch (e) {{}} }};
   sweepNow();
   if (document.readyState !== 'loading') sweepNow();
   else document.addEventListener('DOMContentLoaded', sweepNow);
-  new MutationObserver(sweepNow).observe(document.documentElement || document, {{
-    childList: true, subtree: true
-  }});
+  const observe = () => {{
+    const root = document.documentElement || document;
+    if (root) new MutationObserver(sweepNow).observe(root, {{ childList: true, subtree: true }});
+  }};
+  if (document.documentElement) observe();
+  else document.addEventListener('DOMContentLoaded', observe, {{ once: true }});
 
   const blocked = (raw) => {{
     if (!raw) return false;
