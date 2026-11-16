@@ -1,10 +1,11 @@
 //! Headless sign-in helper.
 //!
-//! Runs the PKCE flow, stores the resulting tokens and prints a short summary
-//! so the credentials can be verified without starting the GUI.
+//! Uses the same device-authorization (QR pairing) flow as the desktop client:
+//! Spotify shows a short code and a QR code on `spotify.com/pair`, the browser
+//! is opened for the user, and we poll until the pairing is approved.
 
 use spotify_core::api::ApiClient;
-use spotify_core::auth::{self, LoginFlow};
+use spotify_core::auth;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -28,11 +29,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
-    let flow = LoginFlow::start().await?;
-    println!("open this URL to authorise the client:\n\n  {}\n", flow.auth_url);
-    flow.open_browser();
+    let authorization = auth::start_device_flow().await?;
 
-    let tokens = flow.complete().await?;
+    println!();
+    println!("  Spotify pairing code: {}", authorization.user_code);
+    println!();
+    println!("  Opening your browser. Scan the QR code or enter the code above at:");
+    println!("    {}", authorization.browser_url());
+    println!();
+    open_browser(authorization.browser_url());
+
+    let tokens = auth::await_device_token(&authorization, |message| println!("  {message}")).await?;
     auth::save_tokens(&tokens)?;
 
     let client = ApiClient::new(tokens, spotify_core::api::client_id());
@@ -44,4 +51,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("playlists visible: {}", playlists.total);
 
     Ok(())
+}
+
+/// Hand the pairing URL to the system's default browser.
+fn open_browser(url: &str) {
+    #[cfg(windows)]
+    {
+        // `rundll32` hands the URL straight to the shell's protocol handler,
+        // so query characters need no extra escaping.
+        let _ = std::process::Command::new("rundll32.exe")
+            .args(["url.dll,FileProtocolHandler", url])
+            .spawn();
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = std::process::Command::new("xdg-open").arg(url).spawn();
+    }
 }
