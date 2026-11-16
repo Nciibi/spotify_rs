@@ -368,24 +368,17 @@ impl SpotifyApp {
     fn top_bar(&mut self, ui: &mut egui::Ui) {
         ui.horizontal(|ui| {
             ui.add_space(8.0);
-            let arrow = |ui: &mut egui::Ui, glyph: &str| {
-                ui.add(
-                    egui::Button::new(RichText::new(glyph).color(theme::TEXT_DIM).size(18.0))
-                        .fill(theme::HOVER)
-                        .stroke(Stroke::NONE)
-                        .corner_radius(egui::CornerRadius::same(50))
-                        .min_size(Vec2::new(30.0, 30.0)),
-                );
-            };
+            theme::round_button(ui, "<", 18.0, false);
+            ui.add_space(4.0);
+            theme::round_button(ui, ">", 18.0, false);
+            ui.add_space(16.0);
 
-            arrow(ui, "<");
-            arrow(ui, ">");
-            ui.add_space(12.0);
-
+            ui.label(RichText::new(theme::icon::SEARCH).color(theme::TEXT_DIM).size(16.0));
+            ui.add_space(2.0);
             let edit = egui::TextEdit::singleline(&mut self.search_query)
                 .hint_text("What do you want to play?")
-                .desired_width(320.0)
-                .background_color(theme::HOVER)
+                .desired_width(280.0)
+                .background_color(Color32::TRANSPARENT)
                 .text_color(theme::TEXT)
                 .font(TextStyle::Body);
             let response = ui.add(edit);
@@ -399,8 +392,31 @@ impl SpotifyApp {
 
             ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
                 if let Some(error) = &self.error {
-                    ui.label(RichText::new(error).color(Color32::from_rgb(255, 100, 100)).size(12.0));
+                    ui.label(RichText::new(error).color(Color32::from_rgb(255, 100, 100)).size(11.0));
                 }
+                ui.add_space(8.0);
+                let (avatar, _) = ui.allocate_exact_size(Vec2::new(28.0, 28.0), Sense::hover());
+                ui.painter().circle_filled(avatar.center(), 13.0, theme::HOVER);
+                let initial = self.user_name.as_deref().and_then(|n| n.chars().next())
+                    .unwrap_or('S').to_ascii_uppercase();
+                ui.painter().text(
+                    avatar.center(),
+                    egui::Align2::CENTER_CENTER,
+                    initial.to_string(),
+                    egui::FontId::proportional(12.0),
+                    theme::TEXT,
+                );
+                ui.add_space(12.0);
+                ui.label(RichText::new(theme::icon::DOWNLOAD).color(theme::TEXT_MUTED).size(15.0));
+                ui.add_space(4.0);
+                ui.label(RichText::new("Install App").color(theme::TEXT_MUTED).size(12.0));
+                ui.add_space(14.0);
+                ui.add(
+                    egui::Button::new(RichText::new("Explore Premium").color(theme::TEXT).size(12.0).strong())
+                        .fill(theme::HOVER)
+                        .stroke(Stroke::NONE)
+                        .corner_radius(egui::CornerRadius::same(18)),
+                );
             });
         });
     }
