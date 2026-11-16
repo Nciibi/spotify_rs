@@ -732,7 +732,9 @@ impl eframe::App for SpotifyApp {
             .request_repaint_after(std::time::Duration::from_millis(200));
 
         // The real client uses a 64px #181818 player bar and a 232px black
-        // sidebar (recovered from `xpui-snapshot.css`).
+        // sidebar (recovered from `xpui-snapshot.css`). The login surface has
+        // neither, so only mount them once there is a session.
+        if self.logged_in {
         egui::containers::Panel::bottom("now-playing")
             .frame(egui::Frame::default().fill(theme::RAISED))
             .exact_size(64.0)
