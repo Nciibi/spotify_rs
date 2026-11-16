@@ -346,7 +346,9 @@ impl SpotifyApp {
             }
 
             ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
-                self.status_bar(ui);
+                if let Some(error) = &self.error {
+                    ui.label(RichText::new(error).color(Color32::from_rgb(255, 100, 100)).size(12.0));
+                }
             });
         });
     }
