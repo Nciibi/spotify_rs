@@ -342,26 +342,20 @@ impl SpotifyApp {
                     for playlist in &self.playlists {
                         let url = playlist.image().map(|image| image.url.clone()).unwrap_or_default();
                         let id = playlist.id.clone();
+                        let name = playlist.name.clone();
                         let clicked = ui
                             .add(
                                 egui::Button::new("")
-                                    .fill(Color32::TRANSPARENT)
+                                    .fill(theme::HOVER)
                                     .stroke(Stroke::NONE)
                                     .corner_radius(egui::CornerRadius::same(4))
                                     .min_size(Vec2::new(208.0, 56.0)),
                             )
                             .clicked();
-                        let rect = ui.max_rect();
-                        // Draw the row content on top of the transparent button.
-                        let row = egui::Rect::from_min_size(
-                            rect.min,
-                            Vec2::new(208.0, 56.0),
-                        );
-                        self.artwork(ui, &url, 48.0);
                         if clicked {
                             self.send(Command::LoadPlaylist(id));
                         }
-                        let _ = row;
+                        let _ = (name, url);
                     }
                 });
             });
