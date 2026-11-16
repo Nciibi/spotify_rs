@@ -359,7 +359,10 @@ mod tests {
     fn resolver_rules_cover_every_blocked_host() {
         let rules = host_resolver_rules();
         for host in BLOCKED_HOSTS {
-            assert!(rules.contains(&format!("MAP {host} 0.0.0.0")), "missing {host}");
+            assert!(
+                rules.contains(&format!("MAP {host} 0.0.0.0")),
+                "missing {host}"
+            );
         }
     }
 
