@@ -343,19 +343,23 @@ impl SpotifyApp {
                         let url = playlist.image().map(|image| image.url.clone()).unwrap_or_default();
                         let id = playlist.id.clone();
                         let name = playlist.name.clone();
-                        let clicked = ui
-                            .add(
-                                egui::Button::new("")
-                                    .fill(theme::HOVER)
-                                    .stroke(Stroke::NONE)
-                                    .corner_radius(egui::CornerRadius::same(4))
-                                    .min_size(Vec2::new(208.0, 56.0)),
-                            )
-                            .clicked();
-                        if clicked {
-                            self.send(Command::LoadPlaylist(id));
-                        }
-                        let _ = (name, url);
+                        ui.horizontal(|ui| {
+                            ui.add_space(4.0);
+                            self.artwork(ui, &url, 48.0);
+                            ui.vertical(|ui| {
+                                ui.add_space(5.0);
+                                let label = ui.add(
+                                    egui::Label::new(
+                                        RichText::new(&name).color(theme::TEXT).size(13.0),
+                                    )
+                                    .sense(Sense::click()),
+                                );
+                                if label.clicked() {
+                                    self.send(Command::LoadPlaylist(id.clone()));
+                                }
+                                ui.label(RichText::new("Playlist").color(theme::TEXT_MUTED).size(11.0));
+                            });
+                        });
                     }
                 });
             });
