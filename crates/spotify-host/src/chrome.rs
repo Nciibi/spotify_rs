@@ -129,9 +129,9 @@ a.e-101111-skip-link { display: none !important; }
 [class*="TrialBanner"] { display: none !important; }
 
 /* The header's marketing buttons. The stable `href` handles "Install App";
-   `:has-text()` is used instead of `:text-is()` because Chromium ships the
-   former but not the latter. The JS prune is the primary mechanism and these
-   rules are the no-flash fallback. */
+   Chromium's supported `:has-text()` pseudo-class is used for the text
+   matches. The JS prune is the primary mechanism and these rules are the
+   no-flash fallback. */
 a[href="/download"] { display: none !important; }
 [data-testid="global-nav-bar"] button:has-text("Premium"),
 [data-testid="global-nav-bar"] button:has-text("Support"),
