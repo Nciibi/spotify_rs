@@ -91,6 +91,8 @@ pub struct SpotifyApp {
     image_failures: HashSet<String>,
 
     logged_in: bool,
+    /// Pairing code and URL while the device-authorization flow is in flight.
+    pairing: Option<String>,
 }
 
 impl SpotifyApp {
