@@ -554,6 +554,10 @@ impl SpotifyApp {
         );
 
         let albums = self.new_releases.clone();
+        if albums.is_empty() && self.top_tracks.is_empty() {
+            self.demo_home(ui);
+            return;
+        }
         if !albums.is_empty() {
             ui.add_space(6.0);
             theme::section_title(ui, "New releases");
