@@ -395,34 +395,61 @@ impl SpotifyApp {
     }
 
     fn home_view(&mut self, ui: &mut egui::Ui) {
-        ui.add_space(12.0);
-        ui.label(RichText::new("Good evening").color(theme::TEXT).size(28.0).strong());
-        ui.add_space(16.0);
+        // A tinted header, like the gradient the desktop client paints behind
+        // the greeting on its home page.
+        let (banner, _) = ui.allocate_exact_size(Vec2::new(ui.available_width(), 116.0), Sense::hover());
+        theme::gradient(ui.painter(), banner, theme::GRADIENT_TOP, theme::GRADIENT_BOTTOM);
+        ui.allocate_ui_at_rect(banner, |ui| {
+            ui.vertical(|ui| {
+                ui.add_space(38.0);
+                ui.horizontal(|ui| {
+                    ui.add_space(24.0);
+                    ui.label(RichText::new("Good evening").color(theme::TEXT).size(32.0).strong());
+                });
+            });
+        });
 
         let albums = self.new_releases.clone();
         if !albums.is_empty() {
-            ui.label(RichText::new("New releases").color(theme::TEXT).size(20.0).strong());
+            ui.add_space(6.0);
+            theme::section_title(ui, "New releases");
             ui.add_space(8.0);
             egui::ScrollArea::horizontal().show(ui, |ui| {
                 ui.horizontal(|ui| {
                     for album in &albums {
                         let url = album.image().map(|image| image.url.clone()).unwrap_or_default();
-                        ui.vertical(|ui| {
-                            ui.set_width(150.0);
-                            self.artwork(ui, &url, 150.0);
-                            ui.label(
-                                RichText::new(&album.name)
-                                    .color(theme::TEXT)
-                                    .size(13.0)
-                                    .strong(),
-                            );
-                            ui.label(
-                                RichText::new(album.album_type.replace('_', " "))
-                                    .color(theme::TEXT_MUTED)
-                                    .size(11.0),
-                            );
+                        let (rect, response) =
+                            ui.allocate_exact_size(Vec2::new(168.0, 214.0), Sense::click());
+                        theme::card_background(ui.painter(), rect, response.hovered());
+                        ui.allocate_ui_at_rect(rect, |ui| {
+                            ui.vertical(|ui| {
+                                ui.add_space(8.0);
+                                ui.horizontal(|ui| {
+                                    ui.add_space(9.0);
+                                    self.artwork(ui, &url, 150.0);
+                                });
+                                ui.horizontal(|ui| {
+                                    ui.add_space(9.0);
+                                    ui.label(RichText::new(&album.name).color(theme::TEXT).size(13.0).strong());
+                                });
+                                ui.horizontal(|ui| {
+                                    ui.add_space(9.0);
+                                    ui.label(
+                                        RichText::new(album.album_type.replace('_', " "))
+                                            .color(theme::TEXT_MUTED)
+                                            .size(11.0),
+                                    );
+                                });
+                            });
                         });
-                        ui.add_space(12.0);
+                        if response.clicked() {
+                            if let Some(image) = album.image() {
+                                // Reuse the search path for a quick preview.
+                                self.send(Command::Search(album.name.clone()));
+                                let _ = image;
+                            }
+                        }
+                        ui.add_space(10.0);
                     }
                 });
             });
