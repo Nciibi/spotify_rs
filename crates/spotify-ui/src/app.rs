@@ -286,7 +286,6 @@ impl SpotifyApp {
             .fill(theme::BASE)
             .corner_radius(egui::CornerRadius::same(8))
             .inner_margin(egui::Margin { left: 8, right: 8, top: 12, bottom: 8 })
-            .rest(true)
             .show(ui, |ui| {
                 ui.horizontal(|ui| {
                     ui.add_space(6.0);
