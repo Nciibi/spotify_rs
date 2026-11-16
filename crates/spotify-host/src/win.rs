@@ -45,36 +45,30 @@ fn set_attribute(hwnd: HWND, attribute: u32, value: u32) {
 ///
 /// `accent` is the RGB value used for the border so it matches the app.
 pub fn style_window(hwnd: HWND, accent: (u8, u8, u8), backdrop: Backdrop) {
-    unsafe {
-        // Dark non-client area.
-        set_attribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, 1);
+    // Dark non-client area.
+    set_attribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, 1);
 
-        // Rounded corners.
-        set_attribute(
-            hwnd,
-            DWMWA_WINDOW_CORNER_PREFERENCE,
-            DWMWCP_ROUND as u32,
-        );
+    // Rounded corners.
+    set_attribute(hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, DWMWCP_ROUND as u32);
 
-        // Blend the border into the application chrome.
-        let (r, g, b) = accent;
-        let color = (u32::from(r) << 16) | (u32::from(g) << 8) | u32::from(b);
-        set_attribute(hwnd, DWMWA_BORDER_COLOR, color);
+    // Blend the border into the application chrome.
+    let (r, g, b) = accent;
+    let color = (u32::from(r) << 16) | (u32::from(g) << 8) | u32::from(b);
+    set_attribute(hwnd, DWMWA_BORDER_COLOR, color);
 
-        match backdrop {
-            Backdrop::None => {
-                set_attribute(hwnd, DWMWA_SYSTEMBACKDROP_TYPE, 0);
-                set_attribute(hwnd, DWMWA_CAPTION_COLOR, color);
-            }
-            Backdrop::Mica => {
-                set_attribute(hwnd, DWMWA_SYSTEMBACKDROP_TYPE, DWMSBT_MICA as u32);
-                // Let the Mica show through the caption.
-                set_attribute(hwnd, DWMWA_CAPTION_COLOR, DWMWA_COLOR_DEFAULT);
-            }
-            Backdrop::Acrylic => {
-                set_attribute(hwnd, DWMWA_SYSTEMBACKDROP_TYPE, DWMSBT_ACRYLIC as u32);
-                set_attribute(hwnd, DWMWA_CAPTION_COLOR, DWMWA_COLOR_DEFAULT);
-            }
+    match backdrop {
+        Backdrop::None => {
+            set_attribute(hwnd, DWMWA_SYSTEMBACKDROP_TYPE, 0);
+            set_attribute(hwnd, DWMWA_CAPTION_COLOR, color);
+        }
+        Backdrop::Mica => {
+            set_attribute(hwnd, DWMWA_SYSTEMBACKDROP_TYPE, DWMSBT_MICA as u32);
+            // Let the Mica show through the caption.
+            set_attribute(hwnd, DWMWA_CAPTION_COLOR, DWMWA_COLOR_DEFAULT);
+        }
+        Backdrop::Acrylic => {
+            set_attribute(hwnd, DWMWA_SYSTEMBACKDROP_TYPE, DWMSBT_ACRYLIC as u32);
+            set_attribute(hwnd, DWMWA_CAPTION_COLOR, DWMWA_COLOR_DEFAULT);
         }
     }
 }
