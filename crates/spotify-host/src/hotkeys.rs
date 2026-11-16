@@ -27,8 +27,6 @@ const VK_VOLUME_MUTE: i32 = 0xAD;
 const VK_VOLUME_DOWN: i32 = 0xAE;
 const VK_VOLUME_UP: i32 = 0xAF;
 
-const WM_KEYDOWN: u32 = 0x0100;
-const WM_SYSKEYDOWN: u32 = 0x0101;
 const WH_KEYBOARD_LL: windows::Win32::UI::WindowsAndMessaging::WINDOWS_HOOK_ID = windows::Win32::UI::WindowsAndMessaging::WINDOWS_HOOK_ID(13);
 const HC_ACTION: i32 = 0;
 
