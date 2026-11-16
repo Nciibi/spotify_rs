@@ -174,6 +174,10 @@ Windows already ships, and adds a native shell around it.
   (`DwmSetWindowAttribute`, see `crates/spotify-host/src/win.rs`)
 * global media keys through a low level keyboard hook
   (`crates/spotify-host/src/hotkeys.rs`)
+* an ambient colour wash sampled from the current cover art and applied behind
+  the interface (`--sr-accent-rgb`, see `crates/spotify-host/src/chrome.rs`).
+  The native client has this; the plain web player does not. If the CDN
+  refuses the cross-origin canvas read, it falls back to Spotify green.
 
 Measured against the installed client:
 
