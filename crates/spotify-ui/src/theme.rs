@@ -85,3 +85,66 @@ pub fn play_button(painter: &egui::Painter, center: egui::Pos2, radius: f32, hov
     ];
     painter.add(egui::Shape::convex_polygon(points, BLACK, Stroke::NONE));
 }
+
+/// Paint a vertical gradient, the way Spotify tints the top of the home page.
+pub fn gradient(painter: &egui::Painter, rect: egui::Rect, top: Color32, bottom: Color32) {
+    let mut quad = egui::Mesh::default();
+    quad.add_rect_with_uv(
+        rect,
+        egui::Rect::from_min_max(egui::pos2(0.0, 0.0), egui::pos2(1.0, 1.0)),
+        Color32::WHITE,
+    );
+    let colors = [top, top, bottom, bottom];
+    for (vertex, color) in quad.vertices.iter_mut().zip(colors) {
+        vertex.color = color;
+    }
+    painter.add(egui::Shape::Mesh(quad));
+}
+
+/// A rounded card surface. `hovered` lifts the fill slightly.
+pub fn card_background(painter: &egui::Painter, rect: egui::Rect, hovered: bool) {
+    painter.rect_filled(
+        rect,
+        CornerRadius::same(8),
+        if hovered { CARD_HOVER } else { RAISED },
+    );
+}
+
+/// A section heading used above rows and grids of cards.
+pub fn section_title(ui: &mut egui::Ui, text: &str) {
+    ui.label(
+        egui::RichText::new(text)
+            .color(TEXT)
+            .size(20.0)
+            .strong(),
+    );
+}
+
+/// The primary play/pause control in the player bar.
+pub fn play_pause_button(
+    ui: &mut egui::Ui,
+    paused: bool,
+    on_toggle: impl FnOnce(),
+) -> egui::Response {
+    let (rect, response) = ui.allocate_exact_size(Vec2::new(34.0, 34.0), egui::Sense::click());
+    let hovered = response.hovered();
+    play_button(ui.painter(), rect.center(), 16.0, hovered);
+    if !paused {
+        // Two bars over the green circle.
+        let painter = ui.painter();
+        let bar = egui::Stroke::new(3.5, BLACK);
+        for offset in [-4.0, 4.0] {
+            painter.line_segment(
+                [
+                    egui::pos2(rect.center().x + offset, rect.center().y - 6.0),
+                    egui::pos2(rect.center().x + offset, rect.center().y + 6.0),
+                ],
+                bar,
+            );
+        }
+    }
+    if response.clicked() {
+        on_toggle();
+    }
+    response
+}
