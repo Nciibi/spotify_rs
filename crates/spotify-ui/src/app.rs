@@ -137,6 +137,7 @@ impl SpotifyApp {
             inflight_images: HashSet::new(),
             image_failures: HashSet::new(),
             logged_in: false,
+            pairing: None,
         }
     }
 
