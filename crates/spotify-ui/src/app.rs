@@ -711,31 +711,8 @@ impl eframe::App for SpotifyApp {
         egui::containers::CentralPanel::default()
             .frame(egui::Frame::default().fill(theme::BASE))
             .show(ui, |ui| {
-                if let Some(message) = self.pairing.clone() {
-                    ui.vertical_centered(|ui| {
-                        ui.add_space(90.0);
-                        ui.label(
-                            RichText::new("Pair with Spotify")
-                                .color(theme::TEXT)
-                                .size(28.0)
-                                .strong(),
-                        );
-                        ui.add_space(18.0);
-                        ui.label(
-                            RichText::new(&message)
-                                .color(theme::TEXT_MUTED)
-                                .size(15.0),
-                        );
-                        ui.add_space(10.0);
-                        ui.label(
-                            RichText::new(
-                                "Your browser shows a QR code — scan it with the Spotify \
-                                 mobile app, or enter the code there.",
-                            )
-                            .color(theme::TEXT_DIM)
-                            .size(12.0),
-                        );
-                    });
+                if !self.logged_in {
+                    self.login_view(ui);
                     return;
                 }
                 egui::ScrollArea::vertical().show(ui, |ui| match self.page.clone() {
