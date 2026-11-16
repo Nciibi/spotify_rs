@@ -345,7 +345,9 @@ impl ApiClient {
                 return Ok(Value::Null);
             }
 
-            return Ok(serde_json::from_str(&text)?);
+            let mut value: Value = serde_json::from_str(&text)?;
+            crate::adblock::strip_ads(&mut value);
+            return Ok(value);
         }
 
         unreachable!("retry loop always returns")
