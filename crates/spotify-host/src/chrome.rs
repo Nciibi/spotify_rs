@@ -145,8 +145,8 @@ a[href="/download"] { display: none !important; }
 [id^="ot-sdk-"] { display: none !important; }
 
 /* "About Ads" has no place in an ad blocking client. */
-[data-testid="left-sidebar-legal-links"] li:has(a:text-is("About Ads")),
-[data-testid="left-sidebar-legal-links"] li:has(a:text-is("Cookies")) { display: none !important; }
+[data-testid="left-sidebar-legal-links"] li:has(a:has-text("About Ads")),
+[data-testid="left-sidebar-legal-links"] li:has(a:has-text("Cookies")) { display: none !important; }
 
 /* The desktop client does not have a "back to website" breadcrumb. */
 [data-testid="web-player-banner"] { display: none !important; }
