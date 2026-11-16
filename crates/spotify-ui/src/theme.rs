@@ -20,6 +20,17 @@ pub const GRADIENT_TOP: Color32 = Color32::from_rgb(46, 78, 63);
 pub const GRADIENT_BOTTOM: Color32 = Color32::from_rgb(18, 18, 18);
 /// Background of a hovered card.
 pub const CARD_HOVER: Color32 = Color32::from_rgb(38, 38, 38);
+/// Colours for locally generated artwork when the API has no data yet.
+pub const DEMO_COLORS: &[Color32] = &[
+    Color32::from_rgb(214, 63, 76),
+    Color32::from_rgb(30, 120, 190),
+    Color32::from_rgb(151, 90, 190),
+    Color32::from_rgb(226, 150, 40),
+    Color32::from_rgb(40, 150, 110),
+    Color32::from_rgb(190, 70, 120),
+    Color32::from_rgb(70, 100, 190),
+    Color32::from_rgb(120, 140, 60),
+];
 
 /// Apply the Spotify look to egui's global style.
 pub fn apply(ctx: &egui::Context) {
