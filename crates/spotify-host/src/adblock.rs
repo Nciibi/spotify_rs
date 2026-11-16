@@ -24,7 +24,6 @@ pub const BLOCKED_HOSTS: &[&str] = &[
     "ads.i.scdn.co",
     "ad.scdn.co",
     "pixel.spotify.com",
-    "spclient.wg.spotify.com.ads.service.scdn.co",
     // Google ad networks.
     "ade.googlesyndication.com",
     "pagead2.googlesyndication.com",
