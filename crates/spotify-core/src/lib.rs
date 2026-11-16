@@ -1,6 +1,7 @@
 //! Core of the spotify-rs desktop client: authentication, the Web API client
 //! and the data models they exchange.
 
+pub mod adblock;
 pub mod api;
 pub mod auth;
 pub mod models;
