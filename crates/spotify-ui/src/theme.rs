@@ -31,7 +31,9 @@ pub fn apply(ctx: &egui::Context) {
     let mut fonts = egui::FontDefinitions::default();
     fonts.font_data.insert(
         "spotify".to_owned(),
-        egui::FontData::from_static(include_bytes!("../assets/SpotifyMixUI-Regular.ttf")),
+        std::sync::Arc::new(egui::FontData::from_static(include_bytes!(
+            "../assets/SpotifyMixUI-Regular.ttf"
+        ))),
     );
     fonts
         .families
