@@ -12,6 +12,14 @@ pub const TEXT: Color32 = Color32::from_rgb(255, 255, 255);
 pub const TEXT_MUTED: Color32 = Color32::from_rgb(179, 179, 179);
 pub const TEXT_DIM: Color32 = Color32::from_rgb(122, 122, 122);
 pub const BORDER: Color32 = Color32::from_rgb(42, 42, 42);
+/// The brighter green used for the primary play button.
+pub const GREEN_BRIGHT: Color32 = Color32::from_rgb(40, 235, 110);
+/// Top of the ambient gradient behind the home page.
+pub const GRADIENT_TOP: Color32 = Color32::from_rgb(46, 78, 63);
+/// Bottom of the ambient gradient (fades into the page background).
+pub const GRADIENT_BOTTOM: Color32 = Color32::from_rgb(18, 18, 18);
+/// Background of a hovered card.
+pub const CARD_HOVER: Color32 = Color32::from_rgb(38, 38, 38);
 
 /// Apply the Spotify look to egui's global style.
 pub fn apply(ctx: &egui::Context) {
