@@ -25,6 +25,21 @@ pub const CARD_HOVER: Color32 = Color32::from_rgb(38, 38, 38);
 pub fn apply(ctx: &egui::Context) {
     ctx.set_theme(egui::Theme::Dark);
 
+    // Spotify's own type face, extracted from the desktop client's `xpui.spa`
+    // (`re/target/xpui/fonts`) and converted from WOFF2. Using it matters more
+    // than any single colour: it is most of what makes the UI read as Spotify.
+    let mut fonts = egui::FontDefinitions::default();
+    fonts.font_data.insert(
+        "spotify".to_owned(),
+        egui::FontData::from_static(include_bytes!("../assets/SpotifyMixUI-Regular.ttf")),
+    );
+    fonts
+        .families
+        .entry(egui::FontFamily::Proportional)
+        .or_default()
+        .insert(0, "spotify".to_owned());
+    ctx.set_fonts(fonts);
+
     ctx.all_styles_mut(|style| {
         style.visuals.window_fill = RAISED;
         style.visuals.extreme_bg_color = RAISED;
