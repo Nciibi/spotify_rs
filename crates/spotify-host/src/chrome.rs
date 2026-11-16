@@ -365,13 +365,23 @@ pub fn injected_script() -> String {
   // work instead of throwing, so the prune and accent passes below always
   // get installed.
   const addStyle = () => {{
-    if (document.getElementById('sr-style')) return;
     const host = document.head || document.documentElement;
     if (!host) {{ document.addEventListener('DOMContentLoaded', addStyle, {{ once: true }}); return; }}
-    const style = document.createElement('style');
-    style.id = 'sr-style';
-    style.textContent = {css};
-    host.appendChild(style);
+    if (!document.getElementById('sr-style')) {{
+      const style = document.createElement('style');
+      style.id = 'sr-style';
+      style.textContent = {css};
+      host.appendChild(style);
+    }}
+    // The sign-in flow lives on accounts.spotify.com. Give it the desktop
+    // login's typography and card treatment (from the real login.spa).
+    if (location.hostname === 'accounts.spotify.com' &&
+        !document.getElementById('sr-login-style')) {{
+      const login = document.createElement('style');
+      login.id = 'sr-login-style';
+      login.textContent = {login_css};
+      host.appendChild(login);
+    }}
   }};
   const addAmbient = () => {{
     if (document.getElementById('sr-ambient')) return;
