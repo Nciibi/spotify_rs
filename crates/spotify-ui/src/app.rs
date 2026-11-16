@@ -167,16 +167,22 @@ impl SpotifyApp {
                     self.logged_in = true;
                     self.status = "Signed in".into();
                 }
-                Event::NeedsLogin(url) => {
+                Event::NeedsLogin(message) => {
                     self.logged_in = false;
-                    self.status = if url.is_empty() {
+                    self.pairing = if message.is_empty() {
+                        None
+                    } else {
+                        Some(message)
+                    };
+                    self.status = if message.is_empty() {
                         "Sign in required".into()
                     } else {
-                        "Waiting for the browser to complete sign-in".into()
+                        "Pairing — approve in your browser (QR code)".into()
                     };
                 }
                 Event::LoggedIn => {
                     self.logged_in = true;
+                    self.pairing = None;
                     self.status = "Signed in".into();
                 }
                 Event::LoggedOut => {
