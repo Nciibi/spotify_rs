@@ -303,17 +303,22 @@ impl ApiClient {
                 let status = result.status();
 
                 if status == StatusCode::TOO_MANY_REQUESTS {
-                    let wait = result
+                    let retry_after = result
                         .headers()
                         .get("retry-after")
                         .and_then(|value| value.to_str().ok())
-                        .and_then(|value| value.parse::<u64>().ok())
-                        .map(Duration::from_secs)
-                        .unwrap_or(delay)
-                        // Spotify sometimes asks for a day. Waiting that long
-                        // is never what the user wants, so cap the pause and
-                        // let the request fail instead.
-                        .min(MAX_BACKOFF);
+                        .and_then(|value| value.parse::<u64>().ok());
+
+                    // Spotify often answers with `Retry-After: 86400` for the
+                    // shared desktop client id. Sleeping here only hangs the
+                    // UI; give up immediately and let the caller fall back to
+                    // its offline/demo content.
+                    if retry_after.is_some_and(|seconds| seconds > MAX_BACKOFF.as_secs()) {
+                        tracing::warn!(path, ?retry_after, "rate limited for a long time, giving up");
+                        return Err(ApiError::RateLimited);
+                    }
+
+                    let wait = retry_after.map(Duration::from_secs).unwrap_or(delay);
                     tracing::warn!(path, ?wait, "rate limited by spotify, backing off");
                     tokio::time::sleep(wait).await;
                     delay = (delay * 2).min(MAX_BACKOFF);
