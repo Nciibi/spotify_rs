@@ -88,17 +88,33 @@ pub fn play_button(painter: &egui::Painter, center: egui::Pos2, radius: f32, hov
 
 /// Paint a vertical gradient, the way Spotify tints the top of the home page.
 pub fn gradient(painter: &egui::Painter, rect: egui::Rect, top: Color32, bottom: Color32) {
-    let mut quad = egui::Mesh::default();
-    quad.add_rect_with_uv(
-        rect,
-        egui::Rect::from_min_max(egui::pos2(0.0, 0.0), egui::pos2(1.0, 1.0)),
-        Color32::WHITE,
-    );
-    let colors = [top, top, bottom, bottom];
-    for (vertex, color) in quad.vertices.iter_mut().zip(colors) {
-        vertex.color = color;
-    }
-    painter.add(egui::Shape::Mesh(quad));
+    let mut mesh = egui::Mesh::default();
+    let base = mesh.vertices.len() as u32;
+    mesh.vertices.extend_from_slice(&[
+        egui::Vertex {
+            pos: rect.left_top(),
+            uv: egui::pos2(0.0, 0.0),
+            color: top,
+        },
+        egui::Vertex {
+            pos: rect.right_top(),
+            uv: egui::pos2(1.0, 0.0),
+            color: top,
+        },
+        egui::Vertex {
+            pos: rect.left_bottom(),
+            uv: egui::pos2(0.0, 1.0),
+            color: bottom,
+        },
+        egui::Vertex {
+            pos: rect.right_bottom(),
+            uv: egui::pos2(1.0, 1.0),
+            color: bottom,
+        },
+    ]);
+    mesh.add_triangle(base, base + 1, base + 2);
+    mesh.add_triangle(base + 1, base + 3, base + 2);
+    painter.add(egui::Shape::Mesh(mesh));
 }
 
 /// A rounded card surface. `hovered` lifts the fill slightly.
