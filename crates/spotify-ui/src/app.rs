@@ -344,6 +344,10 @@ impl SpotifyApp {
                     self.send(Command::Search(query));
                 }
             }
+
+            ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
+                self.status_bar(ui);
+            });
         });
     }
 
