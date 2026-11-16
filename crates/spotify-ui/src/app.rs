@@ -238,13 +238,14 @@ impl SpotifyApp {
 
     fn sidebar(&mut self, ui: &mut egui::Ui) {
         ui.add_space(8.0);
-        ui.label(
-            RichText::new("spotify-rs")
-                .color(theme::GREEN)
-                .size(19.0)
-                .strong(),
-        );
-        ui.add_space(12.0);
+        ui.horizontal(|ui| {
+            ui.add_space(6.0);
+            let (dot, _) = ui.allocate_exact_size(Vec2::new(22.0, 22.0), Sense::hover());
+            ui.painter().circle_filled(dot.center(), 10.0, theme::GREEN);
+            ui.add_space(6.0);
+            ui.label(RichText::new("Spotify").color(theme::TEXT).size(20.0).strong());
+        });
+        ui.add_space(16.0);
 
         for (label, page) in [
             ("Home", Page::Home),
