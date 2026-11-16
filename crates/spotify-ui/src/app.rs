@@ -684,15 +684,17 @@ impl eframe::App for SpotifyApp {
         ui.ctx()
             .request_repaint_after(std::time::Duration::from_millis(200));
 
+        // The real client uses a 64px #181818 player bar and a 232px black
+        // sidebar (recovered from `xpui-snapshot.css`).
         egui::containers::Panel::bottom("now-playing")
-            .frame(egui::Frame::default().fill(theme::BLACK))
-            .exact_size(88.0)
+            .frame(egui::Frame::default().fill(theme::RAISED))
+            .exact_size(64.0)
             .resizable(false)
             .show(ui, |ui| self.now_playing_bar(ui));
 
         egui::containers::Panel::left("sidebar")
             .frame(egui::Frame::default().fill(theme::BLACK))
-            .exact_size(220.0)
+            .exact_size(232.0)
             .resizable(false)
             .show(ui, |ui| self.sidebar(ui));
 
