@@ -1,9 +1,15 @@
 //! Styling for the embedded Spotify client.
 //!
 //! The page is the real web player, so the goal is to make it feel like a
-//! native desktop application: the marketing chrome of the website is hidden,
-//! rounded corners reveal the system Mica backdrop, and the scrollbars and
-//! separators match the rest of the application.
+//! native desktop application — and then a little better than the stock one:
+//!
+//! * the website-only chrome (sign up, premium upsells, legal links, cookie
+//!   wall) is pruned, because a paid desktop client never shows it;
+//! * an ambient wash behind the interface is tinted from the current cover
+//!   art, the way the native client's " colourful background" does, something
+//!   the plain web player has no access to;
+//! * rounded corners reveal the system Mica backdrop and the scrollbars,
+//!   separators and focus rings are tuned to match the rest of the shell.
 //!
 //! The selectors come from the live page, see `re/probe_page.mjs`.
 
@@ -14,14 +20,37 @@ pub fn injected_css() -> String {
 html, body {
   background: transparent !important;
   overscroll-behavior: none;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-/* The main application surface. */
+/* Ambient wash tinted from the current cover art (`--sr-accent-rgb`). */
+#sr-ambient {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 46vh;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 100% at 12% -10%,
+      rgba(var(--sr-accent-rgb, 30, 215, 96), 0.42), transparent 70%),
+    linear-gradient(180deg,
+      rgba(var(--sr-accent-rgb, 30, 215, 96), 0.22), transparent);
+  opacity: 0;
+  transition: background 700ms ease, opacity 700ms ease;
+}
+html[data-sr-accent="1"] #sr-ambient { opacity: 1; }
+
+/* The main application surface floats above the wash. */
 #main-view,
-main {
-  border-radius: 10px;
+main,
+.main-view-container {
+  position: relative;
+  z-index: 1;
+  border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.55);
+  box-shadow: 0 20px 70px rgba(0, 0, 0, 0.6),
+              0 0 0 1px rgba(255, 255, 255, 0.04);
 }
 
 /* Compact, unobtrusive scrollbars. */
@@ -37,33 +66,39 @@ main {
   border: 3px solid transparent;
   background-clip: content-box;
 }
-::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.32); background-clip: content-box; }
-
-/* Softer separators. */
-hr, [class*="Separator"] {
-  border-color: rgba(255, 255, 255, 0.07) !important;
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.34);
+  background-clip: content-box;
 }
 
-/* Rounded artwork and cards. */
-img { border-radius: 6px; }
+/* Softer separators. */
+hr, [class*="Separator"], [class*="separator"] {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
 
+/* Rounded artwork and cards with a gentle, consistent hover. */
+img, [data-testid="card-image"] { border-radius: 8px; }
 [class*="CardWrapper"],
-[data-testid="card-click-handler"] {
-  border-radius: 8px;
-  transition: background-color 120ms ease;
+[data-testid="card-click-handler"],
+[class*="Tile"] {
+  border-radius: 10px;
+  transition: background-color 160ms ease, transform 160ms ease;
+}
+[class*="CardWrapper"]:hover,
+[data-testid="card-click-handler"]:hover { transform: translateY(-2px); }
+
+/* A slightly rounder, floating now-playing bar. */
+footer, [data-testid="now-playing-widget"], [data-testid="player-controls"] {
+  backdrop-filter: blur(22px) saturate(140%);
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
 }
 
 /* Keyboard focus that matches the rest of the application. */
 :focus-visible {
-  outline: 2px solid #1ed760 !important;
+  outline: 2px solid rgb(var(--sr-accent-rgb, 30, 215, 96)) !important;
   outline-offset: 2px !important;
 }
 :focus:not(:focus-visible) { outline: none !important; }
-
-/* The bottom player bar floats above the backdrop. */
-footer, [data-testid="now-playing-widget"] {
-  backdrop-filter: blur(18px);
-}
 
 /* Elements the host marked as unwanted. */
 [data-spotify-rs-hide] { display: none !important; }
@@ -87,6 +122,12 @@ a.e-101111-skip-link { display: none !important; }
 [data-testid="footer-div"],
 .main-view-container__mh-footer-container { display: none !important; }
 
+/* Free-tier upgrade cards nagging in the sidebar and on the home page. */
+[data-testid="upgrade-premium-button"],
+[data-testid="premium-card"],
+[class*="PremiumUpsell"],
+[class*="TrialBanner"] { display: none !important; }
+
 /* The header's marketing buttons. */
 [data-testid="global-nav-bar"] button:text-is("Premium"),
 [data-testid="global-nav-bar"] button:text-is("Support"),
@@ -102,6 +143,17 @@ a.e-101111-skip-link { display: none !important; }
 /* "About Ads" has no place in an ad blocking client. */
 [data-testid="left-sidebar-legal-links"] li:has(a:text-is("About Ads")),
 [data-testid="left-sidebar-legal-links"] li:has(a:text-is("Cookies")) { display: none !important; }
+
+/* The desktop client does not have a "back to website" breadcrumb. */
+[data-testid="web-player-banner"] { display: none !important; }
+
+/* Keep reduced-motion users comfortable. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
 "#
     .to_string()
 }
@@ -117,8 +169,13 @@ a.e-101111-skip-link { display: none !important; }
 pub fn prune_script() -> String {
     r#"
 (() => {
-  const HIDE_TEXT = ['Premium', 'Support', 'Download', 'Install App', 'Sign up'];
-  const PROMO_TEXT = ['Create your first playlist', "Let's find some podcasts to follow"];
+  const HIDE_TEXT = ['Premium', 'Support', 'Download', 'Install App', 'Sign up', 'Explore Premium'];
+  const PROMO_TEXT = [
+    'Create your first playlist',
+    "Let's find some podcasts to follow",
+    'Upgrade to Premium',
+    'Get Premium'
+  ];
   const HIDE_SELECTORS = [
     'a.e-101111-skip-link',
     '[data-testid="signup-button"]',
@@ -126,6 +183,9 @@ pub fn prune_script() -> String {
     '[data-testid="language-selection-button"]',
     '[data-testid="signup-bar"]',
     '[data-testid="footer-div"]',
+    '[data-testid="upgrade-premium-button"]',
+    '[data-testid="premium-card"]',
+    '[data-testid="web-player-banner"]',
     '.main-view-container__mh-footer-container'
   ];
 
@@ -168,6 +228,114 @@ pub fn prune_script() -> String {
     .to_string()
 }
 
+/// Sample the dominant colour of the current cover art.
+///
+/// The native client tints the area behind the interface with the palette of
+/// the playing album; the web player does not. A hidden, CORS-enabled clone
+/// of the artwork is drawn to a tiny canvas and its average non-grey colour
+/// is published as `--sr-accent-rgb` for the stylesheet above. If the CDN
+/// refuses the cross-origin read, the fallback Spotify green is left in
+/// place, so nothing breaks.
+pub fn accent_script() -> String {
+    r#"
+(() => {
+  const FALLBACK = '30, 215, 96';
+  const SELECTORS = [
+    '[data-testid="now-playing-widget"] img',
+    '[data-testid="now-playing-cover"] img',
+    '.now-playing img',
+    'footer img'
+  ];
+  let lastSrc = '';
+
+  const cover = () => {
+    for (const s of SELECTORS) {
+      const node = document.querySelector(s);
+      if (node && node.src) return node.src;
+    }
+    return '';
+  };
+
+  const sample = (src) => {
+    const probe = new Image();
+    probe.crossOrigin = 'anonymous';
+    probe.onload = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = canvas.height = 16;
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        ctx.drawImage(probe, 0, 0, 16, 16);
+        const { data } = ctx.getImageData(0, 0, 16, 16);
+        let r = 0, g = 0, b = 0, weight = 0;
+        for (let i = 0; i < data.length; i += 4) {
+          const cr = data[i], cg = data[i + 1], cb = data[i + 2];
+          const max = Math.max(cr, cg, cb), min = Math.min(cr, cg, cb);
+          // Ignore near-black and near-white pixels — they carry no tint.
+          if (max < 24 || min > 232 || max - min < 12) continue;
+          r += cr; g += cg; b += cb; weight++;
+        }
+        if (!weight) return;
+        const rgb = [r / weight, g / weight, b / weight]
+          .map((v) => Math.max(0, Math.min(255, Math.round(v))));
+        document.documentElement.style.setProperty('--sr-accent-rgb', rgb.join(', '));
+        document.documentElement.setAttribute('data-sr-accent', '1');
+      } catch (e) { /* tainted canvas: keep the fallback */ }
+    };
+    probe.src = src;
+  };
+
+  return function accent() {
+    const src = cover();
+    if (!src || src === lastSrc) return;
+    lastSrc = src;
+    sample(src);
+  };
+})()
+"#
+    .to_string()
+}
+
+/// Build the single initialization script the host injects before the page.
+///
+/// It adds the stylesheet, runs the prune and accent passes immediately,
+/// re-runs them whenever React updates the tree, and keeps a slow poll as a
+/// safety net for mutations that do not trigger the observer.
+pub fn injected_script() -> String {
+    let css = serde_json::to_string(&injected_css()).unwrap_or_else(|_| "\"\"".into());
+    let prune = prune_script();
+    let accent = accent_script();
+
+    format!(
+        r#"
+(() => {{
+  const style = document.createElement('style');
+  style.id = 'sr-style';
+  style.textContent = {css};
+  (document.head || document.documentElement).appendChild(style);
+
+  const ambient = document.createElement('div');
+  ambient.id = 'sr-ambient';
+  (document.body || document.documentElement).appendChild(ambient);
+
+  const prune = {prune};
+  const accent = {accent};
+
+  const run = () => {{ prune(); accent(); }};
+  run();
+  if (document.readyState !== 'loading') run();
+  else document.addEventListener('DOMContentLoaded', run);
+
+  const observer = new MutationObserver(() => run());
+  observer.observe(document.documentElement || document, {{
+    childList: true, subtree: true, attributes: true,
+    attributeFilter: ['src', 'class', 'data-testid']
+  }});
+  setInterval(run, 2000);
+}})();
+"#
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -183,5 +351,20 @@ mod tests {
     #[test]
     fn prune_keeps_the_login_button() {
         assert!(prune_script().contains("login-button"));
+    }
+
+    #[test]
+    fn bootstrap_wires_every_layer() {
+        let script = injected_script();
+        assert!(script.contains("sr-style"));
+        assert!(script.contains("sr-ambient"));
+        assert!(script.contains("MutationObserver"));
+        assert!(script.contains("setInterval"));
+        assert!(script.contains("--sr-accent-rgb"));
+    }
+
+    #[test]
+    fn ambient_css_reads_the_accent_variable() {
+        assert!(injected_css().contains("--sr-accent-rgb"));
     }
 }
