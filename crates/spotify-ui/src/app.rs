@@ -237,79 +237,134 @@ impl SpotifyApp {
     // ---- Layout --------------------------------------------------------
 
     fn sidebar(&mut self, ui: &mut egui::Ui) {
-        ui.add_space(8.0);
-        ui.horizontal(|ui| {
-            ui.add_space(6.0);
-            let (dot, _) = ui.allocate_exact_size(Vec2::new(22.0, 22.0), Sense::hover());
-            ui.painter().circle_filled(dot.center(), 10.0, theme::GREEN);
-            ui.add_space(6.0);
-            ui.label(RichText::new("Spotify").color(theme::TEXT).size(20.0).strong());
-        });
-        ui.add_space(16.0);
+        // Top navigation panel.
+        egui::Frame::new()
+            .fill(theme::BASE)
+            .corner_radius(egui::CornerRadius::same(8))
+            .inner_margin(egui::Margin { left: 12, right: 12, top: 16, bottom: 12 })
+            .show(ui, |ui| {
+                ui.horizontal(|ui| {
+                    ui.add_space(4.0);
+                    let (dot, _) = ui.allocate_exact_size(Vec2::new(24.0, 24.0), Sense::hover());
+                    ui.painter().circle_filled(dot.center(), 11.0, theme::GREEN);
+                    ui.add_space(6.0);
+                    ui.label(RichText::new("Spotify").color(theme::TEXT).size(20.0).strong());
+                });
+                ui.add_space(18.0);
 
-        for (label, page) in [
-            ("Home", Page::Home),
-            ("Search", Page::Search),
-            ("Your Library", Page::Library),
-        ] {
-            let selected = self.page == page;
-            let color = if selected {
-                theme::TEXT
-            } else {
-                theme::TEXT_MUTED
-            };
-            let clicked = ui
-                .add(
-                    egui::Button::new(RichText::new(label).color(color).size(15.0))
-                        .fill(if selected {
-                            theme::HOVER
-                        } else {
-                            Color32::TRANSPARENT
-                        })
-                        .stroke(Stroke::NONE)
-                        .corner_radius(egui::CornerRadius::same(4)),
-                )
-                .clicked();
-            if clicked {
-                self.page = page.clone();
-                match page {
-                    Page::Home => self.send(Command::LoadHome),
-                    Page::Library => {
+                for (glyph, label, page) in [
+                    (theme::icon::HOME, "Home", Page::Home),
+                    (theme::icon::SEARCH, "Search", Page::Search),
+                ] {
+                    let selected = self.page == page;
+                    let clicked = ui
+                        .add(
+                            egui::Button::new(
+                                RichText::new(format!("{glyph}  {label}"))
+                                    .color(if selected { theme::TEXT } else { theme::TEXT_MUTED })
+                                    .size(15.0),
+                            )
+                            .fill(Color32::TRANSPARENT)
+                            .stroke(Stroke::NONE)
+                            .corner_radius(egui::CornerRadius::same(4))
+                            .min_size(Vec2::new(190.0, 34.0)),
+                        )
+                        .clicked();
+                    if clicked {
+                        self.page = page.clone();
+                        if page == Page::Home {
+                            self.send(Command::LoadHome);
+                        }
+                    }
+                }
+            });
+
+        ui.add_space(8.0);
+
+        // Library panel.
+        egui::Frame::new()
+            .fill(theme::BASE)
+            .corner_radius(egui::CornerRadius::same(8))
+            .inner_margin(egui::Margin { left: 8, right: 8, top: 12, bottom: 8 })
+            .rest(true)
+            .show(ui, |ui| {
+                ui.horizontal(|ui| {
+                    ui.add_space(6.0);
+                    let lib = theme::icon::LIBRARY;
+                    ui.label(RichText::new(lib).color(theme::TEXT_MUTED).size(17.0));
+                    ui.add_space(6.0);
+                    let lib_clicked = ui
+                        .add(
+                            egui::Button::new(RichText::new("Your Library").color(theme::TEXT).size(15.0).strong())
+                                .fill(Color32::TRANSPARENT)
+                                .stroke(Stroke::NONE),
+                        )
+                        .clicked();
+                    if lib_clicked {
+                        self.page = Page::Library;
                         if !self.library_loaded {
                             self.send(Command::LoadLibrary);
                         }
                     }
-                    Page::Search => {}
-                    Page::Playlist(_) => {}
-                }
-            }
-        }
+                    ui.with_layout(Layout::right_to_left(egui::Align::Center), |ui| {
+                        ui.label(RichText::new(theme::icon::PLUS).color(theme::TEXT_MUTED).size(18.0));
+                    });
+                });
 
-        ui.add_space(16.0);
-        ui.separator();
-        ui.add_space(8.0);
-        ui.label(RichText::new("PLAYLISTS").color(theme::TEXT_DIM).size(11.0));
-
-        egui::ScrollArea::vertical()
-            .auto_shrink([false, false])
-            .show(ui, |ui| {
-                if self.playlists.is_empty() {
-                    ui.label(RichText::new("No playlists yet").color(theme::TEXT_DIM).size(13.0));
-                }
-                for playlist in &self.playlists {
-                    let label = RichText::new(&playlist.name).color(theme::TEXT_MUTED).size(13.0);
-                    let clicked = ui
-                        .add(
-                            egui::Button::new(label)
-                                .fill(Color32::TRANSPARENT)
+                ui.add_space(12.0);
+                ui.horizontal(|ui| {
+                    ui.add_space(6.0);
+                    for chip in ["Playlists", "Artists"] {
+                        ui.add(
+                            egui::Button::new(RichText::new(chip).color(theme::TEXT).size(11.0))
+                                .fill(theme::HOVER)
                                 .stroke(Stroke::NONE)
-                                .corner_radius(egui::CornerRadius::same(4)),
-                        )
-                        .clicked();
-                    if clicked {
-                        self.send(Command::LoadPlaylist(playlist.id.clone()));
+                                .corner_radius(egui::CornerRadius::same(12)),
+                        );
                     }
-                }
+                });
+                ui.add_space(10.0);
+
+                egui::ScrollArea::vertical().auto_shrink([false, false]).show(ui, |ui| {
+                    if self.playlists.is_empty() {
+                        ui.add_space(10.0);
+                        ui.vertical_centered(|ui| {
+                            ui.label(RichText::new("Create your first playlist").color(theme::TEXT).size(14.0).strong());
+                            ui.add_space(6.0);
+                            ui.label(RichText::new("It's easy, we'll help you").color(theme::TEXT_MUTED).size(12.0));
+                            ui.add_space(10.0);
+                            ui.add(
+                                egui::Button::new(RichText::new("Create playlist").color(theme::BLACK).size(12.0).strong())
+                                    .fill(theme::TEXT)
+                                    .corner_radius(egui::CornerRadius::same(18)),
+                            );
+                        });
+                    }
+                    for playlist in &self.playlists {
+                        let url = playlist.image().map(|image| image.url.clone()).unwrap_or_default();
+                        let id = playlist.id.clone();
+                        let clicked = ui
+                            .add(
+                                egui::Button::new("")
+                                    .fill(Color32::TRANSPARENT)
+                                    .stroke(Stroke::NONE)
+                                    .corner_radius(egui::CornerRadius::same(4))
+                                    .min_size(Vec2::new(208.0, 56.0)),
+                            )
+                            .clicked();
+                        let rect = ui.max_rect();
+                        // Draw the row content on top of the transparent button.
+                        let row = egui::Rect::from_min_size(
+                            rect.min,
+                            Vec2::new(208.0, 56.0),
+                        );
+                        self.artwork(ui, &url, 48.0);
+                        if clicked {
+                            self.send(Command::LoadPlaylist(id));
+                        }
+                        let _ = row;
+                    }
+                });
             });
     }
 
