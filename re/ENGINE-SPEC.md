@@ -208,6 +208,21 @@ Verified: `spclient.wg.spotify.com/ads/v2/config` and
 `/sponsoredplaylist/v1/sponsored` both answer `204 Blocked by spotify-rs`,
 ordinary requests pass through.
 
+### Sign-in
+
+The real desktop client uses Spotify's **device-authorization (QR pairing)**
+flow: it obtains a short user code from
+`POST accounts.spotify.com/oauth2/device/authorize` (recovered from the DLL
+strings and confirmed against the live endpoint), sends the user to
+`spotify.com/pair?code=<code>` in the system browser — that page shows the QR
+code — and polls `accounts.spotify.com/api/token` with
+`grant_type=urn:ietf:params:oauth:grant-type:device_code` until approved.
+The same desktop client id (`65b708073fc0480ea92a077233ca87bd`) is used.
+
+`spotify-core::auth::{start_device_flow, await_device_token}` implement this,
+and both `spotify-rs-auth` and the native egui front end use it. The web host
+still relies on the WebView2 profile's web session.
+
 ### The chrome
 
 The web only marketing surfaces are pruned (React re-creates the nodes, so
