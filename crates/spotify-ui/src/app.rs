@@ -406,17 +406,8 @@ impl SpotifyApp {
                     egui::FontId::proportional(12.0),
                     theme::TEXT,
                 );
-                ui.add_space(12.0);
-                ui.label(RichText::new(theme::icon::DOWNLOAD).color(theme::TEXT_MUTED).size(15.0));
-                ui.add_space(4.0);
-                ui.label(RichText::new("Install App").color(theme::TEXT_MUTED).size(12.0));
-                ui.add_space(14.0);
-                ui.add(
-                    egui::Button::new(RichText::new("Explore Premium").color(theme::TEXT).size(12.0).strong())
-                        .fill(theme::HOVER)
-                        .stroke(Stroke::NONE)
-                        .corner_radius(egui::CornerRadius::same(18)),
-                );
+                // The desktop client has no "Install App" or Premium upsell
+                // in its title bar — those are website-only chrome.
             });
         });
     }
