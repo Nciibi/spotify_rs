@@ -308,14 +308,27 @@ pub fn injected_script() -> String {
     format!(
         r#"
 (() => {{
-  const style = document.createElement('style');
-  style.id = 'sr-style';
-  style.textContent = {css};
-  (document.head || document.documentElement).appendChild(style);
-
-  const ambient = document.createElement('div');
-  ambient.id = 'sr-ambient';
-  (document.body || document.documentElement).appendChild(ambient);
+  // Initialization scripts may run before <head>/<body> exist. Defer the DOM
+  // work instead of throwing, so the prune and accent passes below always
+  // get installed.
+  const addStyle = () => {{
+    if (document.getElementById('sr-style')) return;
+    const host = document.head || document.documentElement;
+    if (!host) {{ document.addEventListener('DOMContentLoaded', addStyle, {{ once: true }}); return; }}
+    const style = document.createElement('style');
+    style.id = 'sr-style';
+    style.textContent = {css};
+    host.appendChild(style);
+  }};
+  const addAmbient = () => {{
+    if (document.getElementById('sr-ambient')) return;
+    if (!document.body) {{ document.addEventListener('DOMContentLoaded', addAmbient, {{ once: true }}); return; }}
+    const ambient = document.createElement('div');
+    ambient.id = 'sr-ambient';
+    document.body.appendChild(ambient);
+  }};
+  addStyle();
+  addAmbient();
 
   const prune = {prune};
   const accent = {accent};
