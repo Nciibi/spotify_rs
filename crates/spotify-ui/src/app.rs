@@ -339,7 +339,7 @@ impl SpotifyApp {
                             );
                         });
                     }
-                    for playlist in &self.playlists {
+                    for playlist in self.playlists.clone() {
                         let url = playlist.image().map(|image| image.url.clone()).unwrap_or_default();
                         let id = playlist.id.clone();
                         let name = playlist.name.clone();
