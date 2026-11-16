@@ -442,7 +442,7 @@ pub async fn await_device_token(
 
         let error = serde_json::from_str::<Value>(&body)
             .ok()
-            .and_then(|v| v["error"].as_str().unwrap_or_default().to_string())
+            .and_then(|v| v["error"].as_str().map(str::to_string))
             .unwrap_or_default();
 
         match error.as_str() {
