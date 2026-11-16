@@ -312,6 +312,185 @@ impl LoginFlow {
     }
 }
 
+/// Endpoint that starts Spotify's device-authorization (pairing) flow.
+///
+/// This is the flow the desktop client uses: it asks for a short user code,
+/// sends the user to `spotify.com/pair` (which shows the QR code), and polls
+/// the token endpoint until the pairing is approved.
+pub const DEVICE_AUTHORIZE_URL: &str = "https://accounts.spotify.com/oauth2/device/authorize";
+
+/// An in-flight device-authorization (QR pairing) request.
+#[derive(Debug, Clone)]
+pub struct DeviceAuthorization {
+    pub device_code: String,
+    pub user_code: String,
+    pub verification_uri: String,
+    pub verification_uri_complete: Option<String>,
+    pub expires_in: u64,
+    pub interval: u64,
+}
+
+impl DeviceAuthorization {
+    /// The URL to open in the browser. Spotify's pairing page shows a QR code
+    /// and asks for [`DeviceAuthorization::user_code`].
+    pub fn browser_url(&self) -> &str {
+        self.verification_uri_complete
+            .as_deref()
+            .unwrap_or(&self.verification_uri)
+    }
+}
+
+/// Start the device-authorization flow using the configured client id.
+pub async fn start_device_flow() -> Result<DeviceAuthorization, AuthError> {
+    start_device_flow_for(&client_id()).await
+}
+
+/// Start the device-authorization flow for an explicit client id.
+pub async fn start_device_flow_for(client_id: &str) -> Result<DeviceAuthorization, AuthError> {
+    let form = [
+        ("client_id", client_id),
+        ("scope", &SCOPES.join(" ")),
+    ];
+
+    let http = reqwest::Client::new();
+    let response = http
+        .post(DEVICE_AUTHORIZE_URL)
+        .form(&form)
+        .send()
+        .await
+        .map_err(|e| AuthError::Exchange(e.to_string()))?;
+
+    let status = response.status();
+    let body = response
+        .text()
+        .await
+        .map_err(|e| AuthError::Exchange(e.to_string()))?;
+    if !status.is_success() {
+        return Err(AuthError::Exchange(format!(
+            "device authorization answered {status}: {body}"
+        )));
+    }
+
+    let value: Value =
+        serde_json::from_str(&body).map_err(|e| AuthError::Exchange(e.to_string()))?;
+    let field = |name: &str| -> Result<String, AuthError> {
+        value[name]
+            .as_str()
+            .map(str::to_string)
+            .ok_or_else(|| AuthError::Exchange(format!("device response missing {name}")))
+    };
+
+    Ok(DeviceAuthorization {
+        device_code: field("device_code")?,
+        user_code: field("user_code")?,
+        verification_uri: field("verification_uri")?,
+        verification_uri_complete: value["verification_uri_complete"]
+            .as_str()
+            .map(str::to_string),
+        expires_in: value["expires_in"].as_u64().unwrap_or(1800),
+        interval: value["interval"].as_u64().unwrap_or(5),
+    })
+}
+
+/// Poll the token endpoint until the user approves the pairing.
+///
+/// `on_status` is called with short progress messages suitable for printing.
+pub async fn await_device_token(
+    authorization: &DeviceAuthorization,
+    mut on_status: impl FnMut(&str),
+) -> Result<TokenSet, AuthError> {
+    let http = reqwest::Client::new();
+    let client_id = client_id();
+    let started = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0);
+    let mut interval = authorization.interval.max(1);
+
+    loop {
+        tokio::time::sleep(std::time::Duration::from_secs(interval)).await;
+
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .map(|d| d.as_secs())
+            .unwrap_or(0);
+        if now.saturating_sub(started) >= authorization.expires_in {
+            return Err(AuthError::Exchange("the pairing code expired".into()));
+        }
+
+        let form = [
+            ("grant_type", "urn:ietf:params:oauth:grant-type:device_code"),
+            ("device_code", authorization.device_code.as_str()),
+            ("client_id", client_id.as_str()),
+        ];
+
+        let response = http
+            .post(TOKEN_URL)
+            .form(&form)
+            .send()
+            .await
+            .map_err(|e| AuthError::Exchange(e.to_string()))?;
+        let status = response.status();
+        let body = response
+            .text()
+            .await
+            .map_err(|e| AuthError::Exchange(e.to_string()))?;
+
+        if status.is_success() {
+            let value: Value =
+                serde_json::from_str(&body).map_err(|e| AuthError::Exchange(e.to_string()))?;
+            return token_set_from_value(&value);
+        }
+
+        let error = serde_json::from_str::<Value>(&body)
+            .ok()
+            .and_then(|v| v["error"].as_str().unwrap_or_default().to_string())
+            .unwrap_or_default();
+
+        match error.as_str() {
+            "authorization_pending" => on_status("waiting for approval in the browser..."),
+            "slow_down" => {
+                interval += 5;
+                on_status("slowing down polling as requested by spotify");
+            }
+            "expired_token" => {
+                return Err(AuthError::Exchange("the pairing code expired".into()))
+            }
+            "access_denied" => {
+                return Err(AuthError::Exchange("pairing was denied".into()))
+            }
+            _ => {
+                return Err(AuthError::Exchange(format!(
+                    "device token request answered {status}: {body}"
+                )))
+            }
+        }
+    }
+}
+
+/// Build a token set from a Spotify token response.
+fn token_set_from_value(value: &Value) -> Result<TokenSet, AuthError> {
+    let access_token = value["access_token"]
+        .as_str()
+        .ok_or_else(|| AuthError::Exchange("no access_token in response".into()))?
+        .to_string();
+    let refresh_token = value["refresh_token"].as_str().unwrap_or("").to_string();
+    let expires_in = value["expires_in"].as_u64().unwrap_or(3600);
+    let scope = value["scope"].as_str().map(str::to_string);
+    let expires_at = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0)
+        + expires_in;
+
+    Ok(TokenSet {
+        access_token,
+        refresh_token,
+        expires_at,
+        scope,
+    })
+}
+
 /// Read the stored token set, refreshing it when it has expired.
 pub async fn tokens_or_refresh(
     client: &crate::api::ApiClient,
