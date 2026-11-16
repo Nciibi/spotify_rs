@@ -143,6 +143,42 @@ pub fn card_background(painter: &egui::Painter, rect: egui::Rect, hovered: bool)
     );
 }
 
+/// Icons use Unicode glyphs that egui falls back to a system font for when
+/// SpotifyMixUI does not carry them.
+pub mod icon {
+    pub const HOME: &str = "⌂";
+    pub const SEARCH: &str = "⌕";
+    pub const LIBRARY: &str = "♫";
+    pub const PLAY: &str = "▶";
+    pub const PAUSE: &str = "❚❚";
+    pub const NEXT: &str = "⏭";
+    pub const PREV: &str = "⏮";
+    pub const HEART: &str = "♡";
+    pub const SHUFFLE: &str = "⇄";
+    pub const REPEAT: &str = "↻";
+    pub const PLUS: &str = "+";
+    pub const MORE: &str = "⋯";
+    pub const VOLUME: &str = "◖";
+    pub const EXPAND: &str = "⛶";
+    pub const DOWNLOAD: &str = "↓";
+}
+
+/// A circular button with an icon glyph.
+pub fn round_button(
+    ui: &mut egui::Ui,
+    glyph: &str,
+    size: f32,
+    filled: bool,
+) -> egui::Response {
+    ui.add(
+        egui::Button::new(RichText::new(glyph).color(if filled { BLACK } else { TEXT }).size(size))
+            .fill(if filled { GREEN } else { HOVER })
+            .stroke(Stroke::NONE)
+            .corner_radius(CornerRadius::same(50))
+            .min_size(Vec2::new(32.0, 32.0)),
+    )
+}
+
 /// A section heading used above rows and grids of cards.
 pub fn section_title(ui: &mut egui::Ui, text: &str) {
     ui.label(
