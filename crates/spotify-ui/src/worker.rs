@@ -2,7 +2,7 @@
 //! and translates UI commands into network and audio work.
 
 use spotify_core::api::ApiClient;
-use spotify_core::auth::{self, LoginFlow};
+use spotify_core::auth;
 use spotify_core::models::Track;
 use spotify_playback::Playback;
 use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender};
