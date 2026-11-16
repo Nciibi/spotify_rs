@@ -442,13 +442,6 @@ impl SpotifyApp {
                                 });
                             });
                         });
-                        if response.clicked() {
-                            if let Some(image) = album.image() {
-                                // Reuse the search path for a quick preview.
-                                self.send(Command::Search(album.name.clone()));
-                                let _ = image;
-                            }
-                        }
                         ui.add_space(10.0);
                     }
                 });
