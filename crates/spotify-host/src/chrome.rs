@@ -443,4 +443,19 @@ mod tests {
     fn ambient_css_reads_the_accent_variable() {
         assert!(injected_css().contains("--sr-accent-rgb"));
     }
+
+    #[test]
+    fn login_styling_matches_the_real_client() {
+        let css = login_css();
+        assert!(css.contains("SpotifyMixUI"));
+        assert!(css.contains("CircularSp"));
+        assert!(injected_script().contains("accounts.spotify.com"));
+    }
+
+    #[test]
+    fn download_button_is_hidden_without_text_pseudos() {
+        let css = injected_css();
+        assert!(css.contains("a[href=\"/download\"]"));
+        assert!(!css.contains(":text-is"));
+    }
 }
