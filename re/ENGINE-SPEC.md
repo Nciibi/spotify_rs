@@ -195,9 +195,14 @@ Two layers, driven by the endpoints recovered from the app's own cache
 
 * **native** — `--host-resolver-rules` maps advertising hosts to `0.0.0.0`,
   so the request never leaves the machine;
-* **page** — `fetch`, `XMLHttpRequest`, `WebSocket`, `sendBeacon` and image
-  sources are filtered by host and by path (`/ads/v2/`,
-  `/sponsoredplaylist/`, `/gander/`, ...), and ad containers are hidden.
+* **page** — `fetch`, `XMLHttpRequest`, `WebSocket`, `EventSource`,
+  `sendBeacon` and image sources are filtered by host and by path
+  (`/ads/v2/`, `/ads/v2/config`, `/sponsoredplaylist/`, `/gander/`,
+  `/GetUserHasUnreadNotification`, `open.spotify.com/ad/...`, ...);
+* **cosmetic** — a stylesheet hides ad slots and sponsored rows and a
+  `MutationObserver` sweep removes any that React re-creates. All three
+  layers are injected by `HostOptions::run`; the count is exposed at
+  `window.__spotifyRsBlocked`.
 
 Verified: `spclient.wg.spotify.com/ads/v2/config` and
 `/sponsoredplaylist/v1/sponsored` both answer `204 Blocked by spotify-rs`,
