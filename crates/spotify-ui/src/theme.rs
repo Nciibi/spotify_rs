@@ -1,6 +1,6 @@
 //! Spotify's colour palette and a few shared widget helpers.
 
-use egui::{Color32, CornerRadius, FontFamily, FontId, Stroke, TextStyle, Vec2};
+use egui::{Color32, CornerRadius, FontFamily, FontId, RichText, Stroke, TextStyle, Vec2};
 
 pub const BLACK: Color32 = Color32::from_rgb(0, 0, 0);
 pub const BASE: Color32 = Color32::from_rgb(18, 18, 18);
