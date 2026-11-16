@@ -720,36 +720,6 @@ impl SpotifyApp {
         });
     }
 
-    fn status_bar(&mut self, ui: &mut egui::Ui) {
-        ui.horizontal(|ui| {
-            ui.add_space(12.0);
-            ui.label(RichText::new(&self.status).color(theme::TEXT_DIM).size(11.0));
-            if let Some(error) = &self.error {
-                ui.label(
-                    RichText::new(error)
-                        .color(Color32::from_rgb(255, 100, 100))
-                        .size(11.0),
-                );
-            }
-            if !self.logged_in {
-                ui.label(RichText::new("Sign in").color(theme::GREEN).size(11.0).strong());
-                let clicked = ui
-                    .add(
-                        egui::Button::new(
-                            RichText::new("Sign in with Spotify")
-                                .color(theme::BLACK)
-                                .size(12.0),
-                        )
-                        .fill(theme::GREEN)
-                        .stroke(Stroke::NONE),
-                    )
-                    .clicked();
-                if clicked {
-                    self.send(Command::Login);
-                }
-            }
-        });
-    }
 }
 
 impl eframe::App for SpotifyApp {
