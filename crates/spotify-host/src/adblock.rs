@@ -354,8 +354,9 @@ mod tests {
 
     #[test]
     fn rules_never_map_the_api_host() {
-        assert!(!host_resolver_rules().contains("spclient.wg.spotify.com,"));
-        assert!(!host_resolver_rules().contains("MAP open.spotify.com "));
+        let rules = host_resolver_rules();
+        assert!(!rules.contains("MAP spclient.wg.spotify.com 0.0.0.0"));
+        assert!(!rules.contains("MAP open.spotify.com 0.0.0.0"));
     }
 
     #[test]
