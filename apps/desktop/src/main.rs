@@ -1,13 +1,9 @@
 //! The spotify-rs desktop client.
 //!
-//! Two front ends share one engine:
-//!
-//! * `spotify-host` renders the Spotify web client in a WebView2 window,
-//!   which is the same interface the official client shows.
-//! * `spotify-ui` is a fully native egui client for people who want no
-//!   browser engine at all.
-//!
-//! `--native` selects the egui front end, `--web` (the default) the web one.
+//! `spotify-rs` is a native egui application by default: its own windows,
+//! widgets and renderer, with no browser engine. `--web` opts into the
+//! alternative `spotify-host` front end, which embeds the Spotify web client
+//! through WebView2.
 
 fn main() {
     tracing_subscriber::fmt()
@@ -19,7 +15,7 @@ fn main() {
 
     let args: Vec<String> = std::env::args().skip(1).collect();
 
-    if args.iter().any(|a| a == "--native") {
+    if !args.iter().any(|a| a == "--web") {
         tracing::info!("starting the native front end");
         spotify_ui::run();
         return;
